@@ -1,3 +1,4 @@
+// Sidebar.js
 import React from 'react';
 
 const Sidebar = () => {
@@ -6,15 +7,14 @@ const Sidebar = () => {
             <h2 className="text-lg font-bold mb-4">Sidebar</h2>
             <ul>
                 <li className="mb-2">
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">Registrar Cliente</a>
+                    <a href="/Inicio/RegistraTuCliente" className="text-gray-400 hover:text-white transition-colors duration-200">Registrar Cliente</a>
                 </li>
                 <li className="mb-2">
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">Seguimiento de Pagos</a>
+                    <a href="/Inicio/ListaDeClientes" className="text-gray-400 hover:text-white transition-colors duration-200">Listar Cliente</a>
                 </li>
                 <li className="mb-2">
                     <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">Generar Reportes</a>
                 </li>
-                {/* Agrega más elementos de menú según sea necesario */}
             </ul>
         </div>
     );

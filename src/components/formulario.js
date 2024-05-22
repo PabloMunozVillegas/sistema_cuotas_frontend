@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
+import { toast, ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
 
 const Formulario = () => {
     const [formData, setFormData] = useState({
         Nombre: '',
         Contrasena: ''
     });
-    const [error, setError] = useState('');
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
 
@@ -22,7 +23,6 @@ const Formulario = () => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         setLoading(true);
-        setError('');
     
         try {
             const response = await axios.post('http://localhost:3001/api/autenticacion/login', {
@@ -34,15 +34,20 @@ const Formulario = () => {
                 localStorage.setItem('token', token);
                 navigate('/Inicio');
             } else {
-                throw new Error('No se recibió un token después de iniciar sesión');
+                toast.error('No se recibió un token después de iniciar sesión',{
+                    position: "top-right",
+                    autoClose: 3000,
+                });
             }
         } catch (error) {
             if (error.response) {
-                console.error(error.response.data.message); 
+                toast.error(error.response.data.message, {
+                    position: "top-right",
+                    autoClose: 3000,
+                });
             } else {
-                console.error('Error al realizar la solicitud:', error.message);
+                toast.error('Ocurrió un error al iniciar sesión');
             }
-            setError('Credenciales inválidas');
         } finally {
             setLoading(false);
         }
@@ -76,7 +81,7 @@ const Formulario = () => {
                             required
                         />
                     </div>
-                    {error && <div className="text-red-500 text-center mb-4">{error}</div>}
+                    <ToastContainer />
                     <button
                         type="submit"
                         className={`w-full px-4 py-2 rounded-lg text-white ${loading ? 'bg-lime-400' : 'bg-lime-500 hover:bg-lime-600'} focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-lime-500`}
