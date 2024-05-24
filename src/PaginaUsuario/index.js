@@ -104,7 +104,7 @@ const ListaClientes = () => {
                         nombre={cliente.username}
                         onMoreInfo={() => {
                         }}
-                        onEdit={() => handleOpenModal(cliente.id)}
+                        onEdit={() => handleOpenModal(cliente._id)}
                     />
                 ))}
             </div>
