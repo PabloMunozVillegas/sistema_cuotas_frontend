@@ -3,7 +3,9 @@ import axios from 'axios';
 import DateTimeDisplay from './FechaHora'; 
 import { toast, ToastContainer } from 'react-toastify';
 
-const FormuClien = ({ onClose }) => {
+const FormuUpdateClien = ({ onClose }, clientId) => {
+    console.log("ID del cliente:", clientId); 
+    
     const [formData, setFormData] = useState({
         cedulaIdentidad: '',
         nombres: '',
@@ -17,6 +19,7 @@ const FormuClien = ({ onClose }) => {
         rol: ''
     });
 
+    
     const handleChange = (event) => {
         const { name, value } = event.target;
         setFormData({
@@ -163,4 +166,4 @@ const FormuClien = ({ onClose }) => {
     );
 };
 
-export default FormuClien;
+export default FormuUpdateClien;

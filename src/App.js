@@ -7,6 +7,7 @@ import PaginaInicio from './PaginaInicio';
 import Inicio from './PaginaInicio/components/Inicio';
 import ListaClientes from './PaginaUsuario';
 import ListaProducto from './PaginaProductos';
+import ListaPago from './PaginaPago';
 
 function App() {
   const token = localStorage.getItem('token');
@@ -20,6 +21,7 @@ function App() {
               <Route path="/Inicio" element={<Inicio />} />
               <Route path="/Inicio/VistaDeClientes" element={<ListaClientes/>} />
               <Route path="/Inicio/VistaDeProductos" element={<ListaProducto/>} />
+              <Route path="/Inicio/VistaDePago" element={<ListaPago/>} />
             </Route>
           ) : (
             <Route path="/" element={<Formulario/>} />

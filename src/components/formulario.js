@@ -32,7 +32,12 @@ const Formulario = () => {
             const token = response.data.token;
             if (token) {
                 localStorage.setItem('token', token);
-                navigate('/Inicio');
+                if(response.data.data.rol === 'Administrador'){
+                    navigate('/Inicio');
+                }else{
+                    toast.success('Hola Usuario')
+                }
+                
             } else {
                 toast.error('No se recibió un token después de iniciar sesión',{
                     position: "top-right",
