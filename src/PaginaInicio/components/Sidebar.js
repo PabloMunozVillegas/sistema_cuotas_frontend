@@ -7,13 +7,10 @@ const Sidebar = () => {
             <h2 className="text-lg font-bold mb-4">Sidebar</h2>
             <ul>
                 <li className="mb-2">
-                    <a href="/Inicio/RegistraTuCliente" className="text-gray-400 hover:text-white transition-colors duration-200">Registrar Cliente</a>
+                    <a href="/Inicio/VistaDeClientes" className="text-gray-400 hover:text-white transition-colors duration-200">Vista de Clientes</a>
                 </li>
                 <li className="mb-2">
-                    <a href="/Inicio/ListaDeClientes" className="text-gray-400 hover:text-white transition-colors duration-200">Listar Cliente</a>
-                </li>
-                <li className="mb-2">
-                    <a href="#" className="text-gray-400 hover:text-white transition-colors duration-200">Generar Reportes</a>
+                    <a href="/Inicio/VistaDeProductos" className="text-gray-400 hover:text-white transition-colors duration-200">Vista de Productos</a>
                 </li>
             </ul>
         </div>
