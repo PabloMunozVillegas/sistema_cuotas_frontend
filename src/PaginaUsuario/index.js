@@ -1,12 +1,16 @@
-// ListaClientes.js
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import ModalEliminar from '../components/ModalEliminar';
 import FormuUpdateClien from '../components/ModalFormularioUpdateCli';
+import FormuClien from '../components/ModalFormularioCli';
 import Card from './components/Card';
 
 const ListaClientes = () => {
+    const navigate = useNavigate();
     const [clientes, setClientes] = useState([]);
     const [showModal, setShowModal] = useState(false);
+    const [modalType, setModalType] = useState('');
     const [selectedClientId, setSelectedClientId] = useState('');
     const [searchQuery, setSearchQuery] = useState('');
     const [currentPage, setCurrentPage] = useState(1);
@@ -27,15 +31,33 @@ const ListaClientes = () => {
         }
     };
 
+    const handleOpenModalInfo = (cliente) => {
+        navigate('/Inicio/VistaInfo', { state: { cliente } });
+    };
+    
+
+    const handleOpenModalAddClient = () => {
+        setShowModal(true);
+        setModalType('add');
+    };
+    
+
     const handleOpenModal = (clientId) => {
         setSelectedClientId(clientId);
         setShowModal(true);
+        setModalType('update');
+    };
+
+    const handleEliminarCliente = async (clientId) => {
+        setSelectedClientId(clientId);
+        setShowModal(true);
+        setModalType('delete');
     };
 
     const handleCloseModal = () => {
-        setSelectedClientId('');
         setShowModal(false);
-        fetchClientes();
+        setModalType('');
+        fetchClientes(); 
     };
 
     const handleSearchInputChange = (event) => {
@@ -52,6 +74,14 @@ const ListaClientes = () => {
     const handlePrevPage = () => {
         if (currentPage > 1) {
             setCurrentPage(currentPage - 1);
+        }
+    };
+
+    const updateClientData = async () => {
+        try {
+            await fetchClientes();
+        } catch (error) {
+            console.error(error);
         }
     };
 
@@ -79,9 +109,10 @@ const ListaClientes = () => {
         <div className="p-8 bg-gray-100 min-h-screen flex flex-col">
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-4xl font-bold text-gray-700">Lista de Clientes</h1>
-                <button onClick={handleOpenModal} className="bg-lime-300 hover:bg-lime-400 text-white font-bold py-2 px-4 rounded">
+                <button onClick={handleOpenModalAddClient} className="bg-lime-300 hover:bg-lime-400 text-white font-bold py-2 px-4 rounded">
                     Agregar Cliente
                 </button>
+
             </div>
             <div className="flex mb-4">
                 <input
@@ -102,9 +133,11 @@ const ListaClientes = () => {
                         title={`${cliente.nombres} ${cliente.apellidos}`}
                         carnet={cliente.cedulaIdentidad}
                         nombre={cliente.username}
-                        onMoreInfo={() => {
-                        }}
+                        onMoreInfo={() => {}}
+                        onPay={() => navigate('/Inicio/VistaDePago')}
+                        onAdd={() =>  handleOpenModalInfo(cliente)}
                         onEdit={() => handleOpenModal(cliente._id)}
+                        onDelete={() => handleEliminarCliente(cliente._id)}
                     />
                 ))}
             </div>
@@ -118,9 +151,24 @@ const ListaClientes = () => {
                 </button>
             </div>
 
+            {/* Modal para agregar cliente */}
+            {showModal && modalType === 'add' && (
+                <FormuClien onClose={handleCloseModal} />
+            )}
+
+            
             {/* Modal para editar cliente */}
-            {showModal && (
-                <FormuUpdateClien clientId={selectedClientId} onClose={handleCloseModal} />
+            {showModal && modalType === 'update' && (
+                <FormuUpdateClien
+                    clientId={selectedClientId}
+                    onClose={handleCloseModal}
+                    updateClientData={updateClientData}
+                />
+            )}
+
+            {/* Modal para eliminar cliente */}
+            {showModal && modalType === 'delete' && (
+                <ModalEliminar clientId={selectedClientId} onClose={handleCloseModal} updateClientData={updateClientData} />
             )}
         </div>
     );

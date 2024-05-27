@@ -1,17 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DateTimeDisplay from './FechaHora'; 
 import { toast, ToastContainer } from 'react-toastify';
 
-const FormuUpdateClien = ({ onClose }, clientId) => {
-    console.log("ID del cliente:", clientId); 
-    
+const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
     const [formData, setFormData] = useState({
         cedulaIdentidad: '',
         nombres: '',
         apellidos: '',
-        username: '',
-        password: '',
         email: '',
         telefono: '',
         direccion: '',
@@ -19,7 +15,21 @@ const FormuUpdateClien = ({ onClose }, clientId) => {
         rol: ''
     });
 
+    useEffect(() => {
+        const fetchCliente = async () => {
+            try {
+                const response = await axios.get(`http://localhost:3001/api/autenticacion/cliente/${clientId}`);
+                const { cedulaIdentidad, nombres, apellidos, email, telefono, direccion, genero, rol } = response.data;
+                setFormData({ cedulaIdentidad, nombres, apellidos,  email, telefono, direccion, genero, rol });
+            } catch (error) {
+                console.error(error);
+            }
+        };
     
+        fetchCliente();
+    }, []); 
+    
+
     const handleChange = (event) => {
         const { name, value } = event.target;
         setFormData({
@@ -28,58 +38,28 @@ const FormuUpdateClien = ({ onClose }, clientId) => {
         });
     };
     
-    const handleKeyDown = (event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            handleNextField(event);
-        }
-    };
-    const handleNextField = (event) => {
-        const form = event.target.form;
-        const index = Array.prototype.indexOf.call(form, event.target);
-        const nextElement = form.elements[index + 1];
-        if (nextElement) {
-            nextElement.focus();
-        } else {
-            handleSubmit(event);
-        }
-    };
-    
     const handleSubmit = async (event) => {
         event.preventDefault();
         const token = localStorage.getItem('token');
-        if (!formData.cedulaIdentidad || !formData.nombres || !formData.apellidos || !formData.username || !formData.password || !formData.email || !formData.telefono || !formData.direccion || !formData.genero || !formData.rol) {
-            toast.error('Por favor, complete todos los campos obligatorios', {
-                position: "top-right",
-                autoClose: 3000,
-            });
-            return;
-        }
-        const emailRegex = /^\S+@\S+\.\S+$/;
-        if (!emailRegex.test(formData.email)) {
-            toast.error('El correo electrónico ingresado no es válido', {
-                position: "top-right",
-                autoClose: 3000,
-            });
-            return;
-        }
         try {
-            await axios.post(
-                'http://localhost:3001/api/autenticacion/create', 
-                formData, 
+            await axios.patch(
+                `http://localhost:3001/api/autenticacion/actualizar/${clientId}`,
+                { ...formData, clientId },
                 {
                     headers: {
                         Authorization: `Bearer ${token}`
                     }
                 }
-            )
-            toast.success('Usuario registrado exitosamente',{
+            );
+    
+            // Llama a la función para actualizar los datos del cliente en el componente padre
+            updateClientData();
+    
+            toast.success('Cliente actualizado exitosamente', {
                 position: "top-right",
                 autoClose: 3000,
             });
-            setTimeout(() => {
-                onClose();
-            }, 3000);
+            onClose();
         } catch (error) {
             if (error.response && error.response.data && error.response.data.error) {
                 toast.error(error.response.data.message, {
@@ -87,7 +67,7 @@ const FormuUpdateClien = ({ onClose }, clientId) => {
                     autoClose: 3000,
                 });
             } else {
-                toast.error('Error al registrar cliente. Por favor, inténtelo de nuevo más tarde', {
+                toast.error('Error al actualizar cliente. Por favor, inténtelo de nuevo más tarde', {
                     position: "top-right",
                     autoClose: 3000,
                 });
@@ -95,9 +75,14 @@ const FormuUpdateClien = ({ onClose }, clientId) => {
         }
     };
     
+    const handleClickOutside = (event) => {
+        if (event.target === event.currentTarget) {
+            onClose(); // Cierra el modal solo si se hace clic fuera del contenido del modal
+        }
+    };
 
     return (
-        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-30">
+        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-30" onClick={handleClickOutside}>
             <div className="bg-white rounded-lg p-4 max-w-[80%] w-full md:max-w-md relative">
                 <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -105,59 +90,48 @@ const FormuUpdateClien = ({ onClose }, clientId) => {
                     </svg>
                 </button>
                 <div className="flex justify-between items-center mb-2">
-                    <h1 className="text-xl md:text-lg font-bold text-gray-700">Registro de Cliente</h1>
+                    <h1 className="text-xl md:text-lg font-bold text-gray-700">Actualizar Cliente</h1>
                     <DateTimeDisplay className="font-bold" />
                 </div>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.keys(formData).map((key) => {
-                        if (key !== 'rol' && key !== 'genero') {
-                            return (
-                                <div key={key} className="flex flex-col">
-                                    <label className="mb-1 capitalize">{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</label>
-                                    <input
-                                        type="text"
-                                        name={key}
-                                        value={formData[key]}
-                                        onChange={handleChange}
-                                        onKeyDown={handleKeyDown}
-                                        className="p-2 border border-gray-300 rounded w-full"
-                                        required
-                                    />
-                                </div>
-                            );
-                        }
-                        return null; 
-                    })}
-                    <div className="flex flex-col">
-                        <label className="mb-1 capitalize">Género</label>
-                        <select
-                            name="genero"
-                            value={formData.genero}
-                            onChange={handleChange}
-                            onKeyDown={handleKeyDown}
-                            className="p-2 border border-gray-300 rounded w-full"
-                            required
-                        >
-                            <option value="">Selecciona</option>
-                            <option value="Masculino">Masculino</option>
-                            <option value="Femenino">Femenino</option>
-                        </select>
-                    </div>
-                    <select
-                        name="rol"
-                        value={formData.rol}
-                        onChange={handleChange}
-                        onKeyDown={handleKeyDown}
-                        className="p-2 border border-gray-300 rounded w-full"
-                        required
-                    >
-                        <option value="">Selecciona</option>
-                        <option value="Cliente">Cliente</option>
-                        <option value="Administrador">Administrador</option>
-                    </select>
-
+                    {Object.keys(formData).map((key) => (
+                        <div key={key} className="flex flex-col">
+                            <label className="mb-1 capitalize">{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</label>
+                            {key === 'genero' || key === 'rol' ? (
+                                <select
+                                    name={key}
+                                    value={formData[key]}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded w-full"
+                                    required
+                                >
+                                    <option value="">Selecciona</option>
+                                    {key === 'genero' ? (
+                                        <>
+                                            <option value="Masculino">Masculino</option>
+                                            <option value="Femenino">Femenino</option>
+                                        </>
+                                    ) : (
+                                        <>
+                                            <option value="Cliente">Cliente</option>
+                                            <option value="Administrador">Administrador</option>
+                                        </>
+                                    )}
+                                </select>
+                            ) : (
+                                <input
+                                    type="text"
+                                    name={key}
+                                    value={formData[key]}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded w-full"
+                                    required
+                                />
+                            )}
+                        </div>
+                    ))}
                     <div className="flex justify-end col-span-2">
-                        <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Confirmar Registro</button>
+                        <button type="submit" className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Actualizar Cliente</button>
                     </div>
                 </form>
                 <ToastContainer />

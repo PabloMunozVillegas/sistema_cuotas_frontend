@@ -1,4 +1,3 @@
-// Card.js
 import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faDollarSign, faPlus, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';

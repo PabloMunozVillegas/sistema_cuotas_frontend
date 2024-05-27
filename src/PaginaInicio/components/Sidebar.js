@@ -23,6 +23,9 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                     <li className="mb-2">
                         <a href="/Inicio/VistaDeProductos" className="text-gray-400 hover:text-white transition-colors duration-200">Vista de Productos</a>
                     </li>
+                    <li className="mb-2">
+                        <a href="/Inicio/VistaDeCuotas" className="text-gray-400 hover:text-white transition-colors duration-200">Vista de Cuotas</a>
+                    </li>
                 </ul>
             </div>
         </div>
