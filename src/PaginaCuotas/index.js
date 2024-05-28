@@ -3,42 +3,57 @@ import axios from 'axios';
 
 const FormuCuotas = () => {
     const [clientes, setClientes] = useState([]);
-const [productos, setProductos] = useState([]);
-const [formData, setFormData] = useState({
-    clienteId: '',
-    productoId: '',
-    montoTotal: '',
-    cantidadCuotas: '',
-    fechaPago: new Date().toISOString().split('T')[0] // Ajustar el formato de fecha para el input tipo 'date'
-});
-const [loading, setLoading] = useState(true);
+    const [productos, setProductos] = useState([]);
+    const [formData, setFormData] = useState({
+        clienteId: '',
+        productoId: '',
+        montoTotal: null, // Change initial value to null
+        cantidadCuotas: '',
+        fechaPago: new Date().toISOString().split('T')[0]
+    });
+    const [loading, setLoading] = useState(true);
+    const [error, setError] = useState(null);
 
-useEffect(() => {
-    const fetchData = async () => {
-        setLoading(true);
-        try {
-            const [clientesResponse, productosResponse] = await Promise.all([
-                axios.get('http://localhost:3001/api/autenticacion/listar/clientes'),
-                axios.get('http://localhost:3001/api/productos/listar')
-            ]);
-            
-            setClientes(clientesResponse.data.data instanceof Array ? clientesResponse.data.data : []);
-            setProductos(productosResponse.data.productos instanceof Array ? productosResponse.data.productos : []);
-        } catch (error) {
-            console.error('Error al obtener la lista de clientes o productos:', error);
-        } finally {
-            setLoading(false);
-        }
-    };
+    useEffect(() => {
+        const fetchData = async () => {
+            setLoading(true);
+            try {
+                const [clientesResponse, productosResponse] = await Promise.all([
+                    axios.get('http://localhost:3001/api/autenticacion/listar/clientes'),
+                    axios.get('http://localhost:3001/api/productos/listar')
+                ]);
+                setClientes(clientesResponse.data.data || []);
+                setProductos(productosResponse.data.productos || []);
+            } catch (error) {
+                console.error('Error al obtener la lista de clientes o productos:', error);
+                setError('Error al obtener la lista de clientes o productos');
+            } finally {
+                setLoading(false);
+            }
+        };
 
-    fetchData();
-}, []);
+        fetchData();
+    }, []);
+
     const handleChange = (event) => {
         const { name, value } = event.target;
-        setFormData(prevData => ({
-            ...prevData,
-            [name]: value
-        }));
+        console.log(`Seleccionado ${name}: ${value}`);
+        
+        if (name === 'productoId') {
+            const selectedProduct = productos.find(producto => producto._id === value);
+            if (selectedProduct) {
+                setFormData(prevData => ({
+                    ...prevData,
+                    [name]: value,
+                    montoTotal: selectedProduct.precio.toString()
+                }));
+            }
+        } else {
+            setFormData(prevData => ({
+                ...prevData,
+                [name]: value
+            }));
+        }
     };
 
     const handleSubmit = (event) => {
@@ -51,8 +66,15 @@ useEffect(() => {
             cantidadCuotas: parseInt(cantidadCuotas),
             fechaDePago: fechaPago
         };
-        
-        axios.post(`http://localhost:3001/api/cuotas/create/${clienteId}/${productoId}`, data)
+        const token = localStorage.getItem('token');
+        axios.post(`http://localhost:3001/api/cuotas/create/${clienteId}/${productoId}`, 
+            data,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        )
             .then(response => {
                 console.log('Cuota registrada:', response.data);
             })
@@ -62,11 +84,15 @@ useEffect(() => {
     };
 
     if (loading) {
-        return <div>Cargando...</div>;
+        return <div className="text-black">Cargando...</div>;
+    }
+
+    if (error) {
+        return <div className="text-black">{error}</div>;
     }
 
     return (
-        <div className="p-8 bg-white flex flex-col justify-center min-h-screen">
+        <div className="p-8 bg-white flex flex-col justify-center min-h-screen text-black">
             <div className="w-full max-w-screen-lg mx-auto">
                 <h1 className="text-4xl font-bold text-gray-700 mb-4">Registrar Cuotas</h1>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6">
@@ -80,8 +106,8 @@ useEffect(() => {
                             required
                         >
                             <option value="">Seleccionar Cliente</option>
-                            {clientes && clientes.map(cliente => (
-                                <option key={cliente._id} value={cliente._id}>{cliente.nombre}</option>
+                            {clientes.map(cliente => (
+                                <option key={cliente._id} value={cliente._id}>{cliente.nombres}</option>
                             ))}
                         </select>
                     </div>
@@ -95,18 +121,17 @@ useEffect(() => {
                             required
                         >
                             <option value="">Seleccionar Producto</option>
-                            {productos && productos.map(producto => (
-                                <option key={producto._id} value={producto._id}>{producto.Nombre}</option>
+                            {productos.map(producto => (
+                                <option key={producto._id} value={producto._id}>{producto.nombreProducto}</option>
                             ))}
                         </select>
                     </div>
-                    {/* Renderizar los inputs dinámicamente */}
                     <div>
                         <label className="block font-semibold mb-2">Monto Total</label>
                         <input
                             type="number"
                             name="montoTotal"
-                            value={formData.montoTotal}
+                            value={formData.montoTotal || ''} // Ensure montoTotal is either a string or an empty string
                             onChange={handleChange}
                             className="border p-2 rounded w-full"
                             required
