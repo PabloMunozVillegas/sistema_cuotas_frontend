@@ -5,13 +5,14 @@ import moment from 'moment';
 
 const VistaGeneral = () => {
     const location = useLocation();
-    const cliente = location.state && location.state.cliente;
+    const cliente = location.state && location.state.cliente ;
     const navigate = useNavigate();
     const [cuotas, setCuotas] = useState([]);
     const [pagos, setPagos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [productos, setProductos] = useState({});
     const [pagosPorCuota, setPagosPorCuota] = useState({});
+    const [pagosPorProducto, setPagosPorProducto] = useState({});
 
     useEffect(() => {
         const fetchCuotas = async () => {
@@ -90,18 +91,36 @@ const VistaGeneral = () => {
         contarPagosPorCuota();
     }, [pagos]);
 
+    useEffect(() => {
+        const contarPagosPorProducto = () => {
+            const pagosPorProductoContador = {};
+            cuotas.forEach(cuota => {
+                const producto = productos[cuota.producto];
+                if (!pagosPorProductoContador[producto]) {
+                    pagosPorProductoContador[producto] = { pendientes: 0, pagados: 0 };
+                }
+                const pagosPendientes = pagos.filter(pago => pago.cuotas === cuota._id && pago.estadoPago === "Pendiente").length;
+                const pagosPagados = pagos.filter(pago => pago.cuotas === cuota._id && pago.estadoPago === "Pagado").length;
+                pagosPorProductoContador[producto].pendientes += pagosPendientes;
+                pagosPorProductoContador[producto].pagados += pagosPagados;
+            });
+            setPagosPorProducto(pagosPorProductoContador);
+        };
+        contarPagosPorProducto();
+    }, [cuotas, pagos, productos]);
+
+    
     const handlePagoClick = (cuota) => {
-        const nombreCliente = `${cliente.nombres} ${cliente.apellidos}`;
-        const pagosDeCuota = pagos.filter(pago => pago.cuotas === cuota._id);
+        const nombreCliente = `${cliente.nombres} ${cliente.apellidos }`;
+        const pagosDeCuota = pagos.filter(pago => pago.cuotas === cuota._id && pago.estadoPago === "Pendiente");
         const pagosIds = pagosDeCuota.map(pago => pago._id);
         const montosAPagar = pagosDeCuota.map(pago => pago.totalPagado);
         const datosPago = {
             idUsuario: cliente._id,
             nombreUsuario: nombreCliente,
             idPagos: pagosIds,
-            montosPagar: montosAPagar
+            montosPagar: montosAPagar,
         };
-        console.log('Datos para el pago:', datosPago);
         localStorage.setItem('datosPago', JSON.stringify(datosPago));
         navigate('/Inicio/VistaDePago');
     };
@@ -150,28 +169,35 @@ const VistaGeneral = () => {
                                         <th className="py-2">Estado de Cuota</th>
                                         <th className="py-2">Fecha de Pago</th>
                                         <th className="py-2">Monto a Pagar</th>
-                                        <th className="py-2">Número de Pagos</th>
+                                        <th className="py-2">Pagos Pendientes</th>
+                                        <th className="py-2">Pagos Pagados</th>
                                         <th className="py-2">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {cuotas.map(cuota => (
-                                        <tr key={cuota._id} className="text-center">
-                                            <td className="py-2 border">{productos[cuota.producto]}</td>
-                                            <td className="py-2 border">{cuota.estadoCouta}</td>
-                                            <td className="py-2 border">{moment(cuota.fechaDePago).format('DD/MM/YYYY')}</td>
-                                            <td className="py-2 border">{cuota.montoPagar}</td>
-                                            <td className="py-2 border">{pagosPorCuota[cuota._id] || 0}</td>
-                                            <td className="py-2 border">
+                                {cuotas.map(cuota => (
+                                    <tr key={cuota._id} className="text-center">
+                                        <td className="py-2 border">{productos[cuota.producto]}</td>
+                                        <td className="py-2 border">{cuota.estadoCouta}</td>
+                                        <td className="py-2 border">{moment(cuota.fechaDePago).format('DD/MM/YYYY')}</td>
+                                        <td className="py-2 border">{cuota.montoPagar}</td>
+                                        <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]]?.pendientes || 0}</td>
+                                        <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]]?.pagados || 0}</td>
+                                        <td className="py-2 border">
+                                            {cuota.estadoCouta === "Completado" ? (
+                                                <span>Pago Completado</span>
+                                            ) : (
                                                 <button
                                                     onClick={() => handlePagoClick(cuota)}
                                                     className="bg-blue-500 text-white px-4 py-2 rounded"
                                                 >
                                                     Ir a Pago
                                                 </button>
-                                            </td>
-                                        </tr>
-                                    ))}
+                                            )}
+                                        </td>
+                                    </tr>
+                                ))}
+
                                 </tbody>
                             </table>
                         )}

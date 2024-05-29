@@ -1,14 +1,17 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
+import { useNavigate } from 'react-router-dom';
+import { toast , ToastContainer} from 'react-toastify';
 
 const ListaPago = () => {
     const [cuotaParaPago, setCuotaParaPago] = useState(null);
     const [opcionPago, setOpcionPago] = useState('');
     const [cuotaSeleccionada, setCuotaSeleccionada] = useState('');
     const [totalAPagar, setTotalAPagar] = useState(0);
+    const [modalVisible, setModalVisible] = useState(false); 
+    const navigate = useNavigate();
 
     useEffect(() => {
-        // Obtener datos del localStorage al montar el componente
         const datosPagoString = localStorage.getItem('datosPago');
         if (datosPagoString) {
             const datosPago = JSON.parse(datosPagoString);
@@ -39,9 +42,12 @@ const ListaPago = () => {
 
     const handleCuotaSeleccionadaChange = (event) => {
         setCuotaSeleccionada(event.target.value);
-        console.log('ID de pago seleccionado:', event.target.value); 
     };
-    
+
+    const handleModalConfirm = () => {
+        registrarPago();
+        setModalVisible(false);
+    };
 
     const registrarPago = () => {
         const data = {
@@ -57,14 +63,16 @@ const ListaPago = () => {
                     }
                 )
             .then(response => {
-                console.log('Pago registrado exitosamente:', response.data);
+                toast.success('Pago realizado');
+                localStorage.setItem('clienteSeleccionado', JSON.stringify(cuotaParaPago.idUsuario))
+                setTimeout(() => {
+                    navigate('/Inicio/VistaInfo');
+                }, 2000);
             })
             .catch(error => {
-                console.error('Error al registrar el pago:', error);
+                toast.error('Error al registrar el pago:', error.message);
             });
     };
-    
-    
 
     return (
         <div className="p-8 bg-white flex flex-col justify-center min-h-screen">
@@ -99,10 +107,23 @@ const ListaPago = () => {
                                 </div>
                             </div>
                         )}
-                        <button onClick={registrarPago}>Registrar Pago</button>
+                        <button onClick={() => setModalVisible(true)}>Pagar</button> {/* Botón para mostrar el modal */}
                     </div>
                 )}
             </div>
+            {/* Modal de confirmación */}
+            {modalVisible && (
+                <div className="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex justify-center items-center">
+                    <div className="bg-white p-8 rounded shadow-lg">
+                        <p>¿Estás seguro de realizar este pago?</p>
+                        <div className="flex justify-end mt-4">
+                            <button className="mr-4" onClick={handleModalConfirm}>Sí</button>
+                            <button onClick={() => setModalVisible(false)}>No</button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <ToastContainer/>
         </div>
     );
 };
