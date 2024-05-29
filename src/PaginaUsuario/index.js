@@ -22,8 +22,14 @@ const ListaClientes = () => {
     }, [currentPage, searchQuery, limit]);
 
     const fetchClientes = async () => {
+        const token = localStorage.getItem('token');
         try {
-            const response = await axios.get(`http://localhost:3001/api/autenticacion/listar/clientes?pagina=${currentPage}&limite=${limit}&buscar=${searchQuery}`);
+            const response = await axios.get(`http://localhost:3001/api/autenticacion/listar/clientes?pagina=${currentPage}&limite=${limit}&buscar=${searchQuery}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
             setClientes(response.data.data);
             setTotalPages(response.data.paginas);
         } catch (error) {

@@ -4,9 +4,16 @@ import axios from 'axios';
 
 const ModalEliminar = ({ clientId, onClose, updateClientData }) => {
     const handleEliminarCliente = async () => {
+        const token = localStorage.getItem('token');
         try {
             console.log("ID del cliente a eliminar:", clientId);
-            await axios.delete(`http://localhost:3001/api/autenticacion/eliminar/${clientId}`);
+            await axios.delete(`http://localhost:3001/api/autenticacion/eliminar/${clientId}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        );
             console.log("Cliente eliminado con éxito.");
             onClose(true); 
             updateClientData(); // Actualizar la lista de clientes

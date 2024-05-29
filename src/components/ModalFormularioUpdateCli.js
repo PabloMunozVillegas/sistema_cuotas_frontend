@@ -37,7 +37,7 @@ const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
             [name]: value,
         });
     };
-    
+    //Con token
     const handleSubmit = async (event) => {
         event.preventDefault();
         const token = localStorage.getItem('token');
@@ -51,8 +51,6 @@ const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
                     }
                 }
             );
-    
-            // Llama a la función para actualizar los datos del cliente en el componente padre
             updateClientData();
     
             toast.success('Cliente actualizado exitosamente', {

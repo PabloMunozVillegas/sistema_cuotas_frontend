@@ -36,8 +36,14 @@ const ListaProducto = () => {
     }, []); // Se ejecuta solo una vez al inicio para establecer el límite inicial
 
     const fetchProductos = async () => {
+        const token = localStorage.getItem('token');
         try {
-            const response = await axios.get(`http://localhost:3001/api/productos/listar?pagina=${currentPage}&limite=${limit}&buscar=${searchQuery}`);
+            const response = await axios.get(`http://localhost:3001/api/productos/listar?pagina=${currentPage}&limite=${limit}&buscar=${searchQuery}`,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
             setProductos(response.data.productos);
             setTotalPages(response.data.totalPaginas);
         } catch (error) {

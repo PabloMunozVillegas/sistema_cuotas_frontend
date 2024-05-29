@@ -54,7 +54,14 @@ const VistaGeneral = () => {
     useEffect(() => {
         const fetchProducto = async (idProducto) => {
             try {
-                const response = await axios.get(`http://localhost:3001/api/productos/${idProducto}`);
+                const token = localStorage.getItem('token');
+                const response = await axios.get(`http://localhost:3001/api/productos/${idProducto}`,
+                    {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    }
+                );
                 setProductos(prevProductos => ({
                     ...prevProductos,
                     [idProducto]: response.data.nombreProducto

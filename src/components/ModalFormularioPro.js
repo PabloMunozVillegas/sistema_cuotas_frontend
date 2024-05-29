@@ -26,7 +26,8 @@ const FormuProducto = ({ onClose }) => {
             precio: parseFloat(formData.precio),
             descripcion: formData.descripcion
         };
-    
+        
+        //Con Token
         try {
             await axios.post(
                 'http://localhost:3001/api/productos/create',
