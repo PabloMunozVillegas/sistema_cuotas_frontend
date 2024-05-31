@@ -1,23 +1,36 @@
+// ListaPago.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { toast , ToastContainer} from 'react-toastify';
+import { useCliente } from './ClienteContext';
 
 const ListaPago = () => {
+    const { clienteSeleccionado } = useCliente();
     const [cuotaParaPago, setCuotaParaPago] = useState(null);
     const [opcionPago, setOpcionPago] = useState('');
     const [cuotaSeleccionada, setCuotaSeleccionada] = useState('');
     const [totalAPagar, setTotalAPagar] = useState(0);
-    const [modalVisible, setModalVisible] = useState(false); 
+    const [modalVisible, setModalVisible] = useState(false);
     const navigate = useNavigate();
 
     useEffect(() => {
-        const datosPagoString = localStorage.getItem('datosPago');
-        if (datosPagoString) {
-            const datosPago = JSON.parse(datosPagoString);
-            setCuotaParaPago(datosPago);
-        }
-    }, []);
+        const fetchCuotas = async () => {
+            if (clienteSeleccionado && clienteSeleccionado._id) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await axios.get(`http://localhost:3001/api/cuotas/usuario/${clienteSeleccionado._id}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+                    setCuotaParaPago(response.data);
+                } catch (error) {
+                    console.error('Error al obtener las cuotas del usuario:', error);
+                }
+            }
+        };
+        fetchCuotas();
+    }, [clienteSeleccionado]);
 
     useEffect(() => {
         if (opcionPago && cuotaParaPago) {
@@ -46,6 +59,7 @@ const ListaPago = () => {
 
     const handleModalConfirm = () => {
         registrarPago();
+        localStorage.removeItem('datosPago');
         setModalVisible(false);
     };
 
@@ -53,20 +67,20 @@ const ListaPago = () => {
         const data = {
             idPago: [cuotaSeleccionada],
         };
+        const cliente = clienteSeleccionado._id;
         const token = localStorage.getItem('token');
-        axios.post(`http://localhost:3001/api/pagos/create/${cuotaParaPago.idUsuario}`, 
-                    data,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }
-                )
+        axios.post(`http://localhost:3001/api/pagos/create/${cliente}`,
+            data,
+            {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            }
+        )
             .then(response => {
                 toast.success('Pago realizado');
-                localStorage.setItem('clienteSeleccionado', JSON.stringify(cuotaParaPago.idUsuario))
                 setTimeout(() => {
-                    navigate('/Inicio/VistaInfo');
+                    navigate('/Inicio/VistaInfo', { state: { cliente: clienteSeleccionado } }); // Pasar el cliente en la navegación
                 }, 2000);
             })
             .catch(error => {
@@ -82,7 +96,7 @@ const ListaPago = () => {
                     <div className="grid grid-cols-1 gap-6">
                         <div>
                             <label className="block font-semibold mb-2">Nombre del Cliente</label>
-                            <p>{cuotaParaPago.nombreUsuario}</p>
+                            <p>{clienteSeleccionado.nombre}</p>
                         </div>
                         <div className="block font-semibold mb-2">
                             <label>Opción de Pago</label>
@@ -100,18 +114,17 @@ const ListaPago = () => {
                                 <div className="flex flex-col">
                                     <select onChange={handleCuotaSeleccionadaChange} value={cuotaSeleccionada}>
                                         <option value="">Seleccionar Cuota</option>
-                                        {cuotaParaPago.idPagos.map((idPago, index) => ( 
+                                        {cuotaParaPago.idPagos.map((idPago, index) => (
                                             <option key={index} value={idPago}>Cuota {index + 1}</option>
                                         ))}
                                     </select>
                                 </div>
                             </div>
                         )}
-                        <button onClick={() => setModalVisible(true)}>Pagar</button> {/* Botón para mostrar el modal */}
+                        <button onClick={() => setModalVisible(true)}>Pagar</button>
                     </div>
                 )}
             </div>
-            {/* Modal de confirmación */}
             {modalVisible && (
                 <div className="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex justify-center items-center">
                     <div className="bg-white p-8 rounded shadow-lg">
@@ -123,7 +136,7 @@ const ListaPago = () => {
                     </div>
                 </div>
             )}
-            <ToastContainer/>
+            <ToastContainer />
         </div>
     );
 };

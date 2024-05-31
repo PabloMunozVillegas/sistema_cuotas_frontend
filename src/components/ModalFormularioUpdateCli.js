@@ -18,7 +18,12 @@ const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
     useEffect(() => {
         const fetchCliente = async () => {
             try {
-                const response = await axios.get(`http://localhost:3001/api/autenticacion/cliente/${clientId}`);
+                const token = localStorage.getItem('token');
+                const response = await axios.get(`http://localhost:3001/api/autenticacion/cliente/${clientId}`,{
+                    headers: {
+                        Authorization: `Bearer ${token}`
+                    }
+                });
                 const { cedulaIdentidad, nombres, apellidos, email, telefono, direccion, genero, rol } = response.data;
                 setFormData({ cedulaIdentidad, nombres, apellidos,  email, telefono, direccion, genero, rol });
             } catch (error) {

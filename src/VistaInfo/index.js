@@ -25,12 +25,16 @@ const VistaGeneral = () => {
                         }
                     });
                     setCuotas(response.data);
+                    setLoading(false);
                 } catch (error) {
                     console.error('Error al obtener las cuotas del usuario:', error);
                 }
             }
         };
+        fetchCuotas();
+    }, [cliente]);
     
+    useEffect(() => {
         const fetchPagos = async () => {
             if (cliente && cliente._id) {
                 try {
@@ -48,7 +52,6 @@ const VistaGeneral = () => {
                 }
             }
         };
-        fetchCuotas();
         fetchPagos();
     }, [cliente]);
     
@@ -56,13 +59,11 @@ const VistaGeneral = () => {
         const fetchProducto = async (idProducto) => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get(`http://localhost:3001/api/productos/${idProducto}`,
-                    {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
+                const response = await axios.get(`http://localhost:3001/api/productos/${idProducto}`, {
+                    headers: {
+                        Authorization: `Bearer ${token}`
                     }
-                );
+                });
                 setProductos(prevProductos => ({
                     ...prevProductos,
                     [idProducto]: response.data.nombreProducto
@@ -71,7 +72,8 @@ const VistaGeneral = () => {
                 console.error('Error al obtener el producto:', error);
             }
         };
-            cuotas.forEach(cuota => {
+        
+        cuotas.forEach(cuota => {
             fetchProducto(cuota.producto);
         });
     }, [cuotas]);
@@ -166,38 +168,35 @@ const VistaGeneral = () => {
                                 <thead>
                                     <tr>
                                         <th className="py-2">Nombre del Producto</th>
-                                        <th className="py-2">Estado de Cuota</th>
                                         <th className="py-2">Fecha de Pago</th>
                                         <th className="py-2">Monto a Pagar</th>
-                                        <th className="py-2">Pagos Pendientes</th>
-                                        <th className="py-2">Pagos Pagados</th>
+                                        <th className="py-2">Cuotas Pendientes</th>
+                                        <th className="py-2">Cuotas Pagados</th>
                                         <th className="py-2">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                {cuotas.map(cuota => (
-                                    <tr key={cuota._id} className="text-center">
-                                        <td className="py-2 border">{productos[cuota.producto]}</td>
-                                        <td className="py-2 border">{cuota.estadoCouta}</td>
-                                        <td className="py-2 border">{moment(cuota.fechaDePago).format('DD/MM/YYYY')}</td>
-                                        <td className="py-2 border">{cuota.montoPagar}</td>
-                                        <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]]?.pendientes || 0}</td>
-                                        <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]]?.pagados || 0}</td>
-                                        <td className="py-2 border">
-                                            {cuota.estadoCouta === "Completado" ? (
-                                                <span>Pago Completado</span>
-                                            ) : (
-                                                <button
-                                                    onClick={() => handlePagoClick(cuota)}
-                                                    className="bg-blue-500 text-white px-4 py-2 rounded"
-                                                >
-                                                    Ir a Pago
-                                                </button>
-                                            )}
-                                        </td>
-                                    </tr>
-                                ))}
-
+                                    {cuotas.map(cuota => (
+                                        <tr key={cuota._id} className="text-center">
+                                            <td className="py-2 border">{productos[cuota.producto]}</td>
+                                            <td className="py-2 border">{moment(cuota.fechaDePago).format('DD/MM/YYYY')}</td>
+                                            <td className="py-2 border">{cuota.montoPagar}</td>
+                                            <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]] && pagosPorProducto[productos[cuota.producto]].pendientes}</td>
+                                            <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]] && pagosPorProducto[productos[cuota.producto]].pagados}</td>
+                                            <td className="py-2 border">
+                                                {cuota.estadoCouta === "Completado" ? (
+                                                    <span>Pago Completado</span>
+                                                ) : (
+                                                    <button
+                                                        onClick={() => handlePagoClick(cuota)}
+                                                        className="bg-blue-500 text-white px-4 py-2 rounded"
+                                                    >
+                                                        Ir a Pago
+                                                    </button>
+                                                )}
+                                            </td>
+                                        </tr>
+                                    ))}
                                 </tbody>
                             </table>
                         )}

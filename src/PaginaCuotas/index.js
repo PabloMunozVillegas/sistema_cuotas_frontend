@@ -20,13 +20,16 @@ const FormuCuotas = () => {
             const token = localStorage.getItem('token');
             try {
                 const [clientesResponse, productosResponse] = await Promise.all([
-                    axios.get('http://localhost:3001/api/autenticacion/listar/clientes'),
-                    axios.get('http://localhost:3001/api/productos/listar'),
-                    {
+                    axios.get('http://localhost:3001/api/autenticacion/listar/clientes', {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
-                    }
+                    }),
+                    axios.get('http://localhost:3001/api/productos/listar', {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    })
                 ]);
                 setClientes(clientesResponse.data.data || []);
                 setProductos(productosResponse.data.productos || []);
