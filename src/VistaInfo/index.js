@@ -1,3 +1,4 @@
+// VistaGeneral.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import axios from 'axios';
@@ -5,41 +6,58 @@ import moment from 'moment';
 
 const VistaGeneral = () => {
     const location = useLocation();
-    const cliente = location.state && location.state.cliente ;
+    const clienteId = location.state && location.state.clienteId;
     const navigate = useNavigate();
+    const [cliente, setCliente] = useState(null);
     const [cuotas, setCuotas] = useState([]);
     const [pagos, setPagos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [productos, setProductos] = useState({});
-    const [pagosPorCuota, setPagosPorCuota] = useState({});
     const [pagosPorProducto, setPagosPorProducto] = useState({});
 
     useEffect(() => {
-        const fetchCuotas = async () => {
-            if (cliente && cliente._id) {
+        const fetchCliente = async () => {
+            if (clienteId) {
                 try {
                     const token = localStorage.getItem('token');
-                    const response = await axios.get(`http://localhost:3001/api/cuotas/usuario/${cliente._id}`, {
+                    const response = await axios.get(`http://localhost:3001/api/autenticacion/cliente/${clienteId}`, {
+                        headers: {
+                            Authorization: `Bearer ${token}`
+                        }
+                    });
+                    setCliente(response.data);
+                    setLoading(false);
+                } catch (error) {
+                    console.error('Error al obtener los datos del cliente:', error);
+                    setLoading(false);
+                }
+            }
+        };
+        fetchCliente();
+    }, [clienteId]);
+
+    useEffect(() => {
+        const fetchCuotas = async () => {
+            if (clienteId) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const response = await axios.get(`http://localhost:3001/api/cuotas/usuario/${clienteId}`, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
                     });
                     setCuotas(response.data);
-                    setLoading(false);
                 } catch (error) {
                     console.error('Error al obtener las cuotas del usuario:', error);
                 }
             }
         };
-        fetchCuotas();
-    }, [cliente]);
-    
-    useEffect(() => {
+
         const fetchPagos = async () => {
-            if (cliente && cliente._id) {
+            if (clienteId) {
                 try {
                     const token = localStorage.getItem('token');
-                    const response = await axios.get(`http://localhost:3001/api/pagos/listar/${cliente._id}`, {
+                    const response = await axios.get(`http://localhost:3001/api/pagos/listar/${clienteId}`, {
                         headers: {
                             Authorization: `Bearer ${token}`
                         }
@@ -47,14 +65,14 @@ const VistaGeneral = () => {
                     setPagos(response.data);
                 } catch (error) {
                     console.error('Error al obtener los pagos del cliente:', error);
-                } finally {
-                    setLoading(false);
                 }
             }
         };
+
+        fetchCuotas();
         fetchPagos();
-    }, [cliente]);
-    
+    }, [clienteId]);
+
     useEffect(() => {
         const fetchProducto = async (idProducto) => {
             try {
@@ -72,26 +90,10 @@ const VistaGeneral = () => {
                 console.error('Error al obtener el producto:', error);
             }
         };
-        
         cuotas.forEach(cuota => {
             fetchProducto(cuota.producto);
         });
     }, [cuotas]);
-
-    useEffect(() => {
-        const contarPagosPorCuota = () => {
-            const pagosPorCuotaContador = {};
-            pagos.forEach(pago => {
-                if (pagosPorCuotaContador[pago.cuotas]) {
-                    pagosPorCuotaContador[pago.cuotas]++;
-                } else {
-                    pagosPorCuotaContador[pago.cuotas] = 1;
-                }
-            });
-            setPagosPorCuota(pagosPorCuotaContador);
-        };
-        contarPagosPorCuota();
-    }, [pagos]);
 
     useEffect(() => {
         const contarPagosPorProducto = () => {
@@ -111,22 +113,20 @@ const VistaGeneral = () => {
         contarPagosPorProducto();
     }, [cuotas, pagos, productos]);
 
-    
     const handlePagoClick = (cuota) => {
-        const nombreCliente = `${cliente.nombres} ${cliente.apellidos }`;
+        const nombreCliente = `${cliente.nombres} ${cliente.apellidos}`;
         const pagosDeCuota = pagos.filter(pago => pago.cuotas === cuota._id && pago.estadoPago === "Pendiente");
         const pagosIds = pagosDeCuota.map(pago => pago._id);
         const montosAPagar = pagosDeCuota.map(pago => pago.totalPagado);
         const datosPago = {
-            idUsuario: cliente._id,
+            idUsuario: clienteId,
             nombreUsuario: nombreCliente,
             idPagos: pagosIds,
             montosPagar: montosAPagar,
         };
         localStorage.setItem('datosPago', JSON.stringify(datosPago));
-        navigate('/Inicio/VistaDePago');
+        navigate('/Inicio/VistaDePago', { state: { clienteId } });
     };
-    
 
     return (
         <div className="p-8 bg-white shadow-md rounded-lg">
@@ -169,7 +169,7 @@ const VistaGeneral = () => {
                                     <tr>
                                         <th className="py-2">Nombre del Producto</th>
                                         <th className="py-2">Fecha de Pago</th>
-                                        <th className="py-2">Monto a Pagar</th>
+                                        <th className="py-2">Monto a Pagar por mes</th>
                                         <th className="py-2">Cuotas Pendientes</th>
                                         <th className="py-2">Cuotas Pagados</th>
                                         <th className="py-2">Acciones</th>
@@ -179,17 +179,17 @@ const VistaGeneral = () => {
                                     {cuotas.map(cuota => (
                                         <tr key={cuota._id} className="text-center">
                                             <td className="py-2 border">{productos[cuota.producto]}</td>
-                                            <td className="py-2 border">{moment(cuota.fechaDePago).format('DD/MM/YYYY')}</td>
+                                            <td className="py-2 border">{moment.utc(cuota.fechaDePago).format('YYYY/MM/DD')}</td>
                                             <td className="py-2 border">{cuota.montoPagar}</td>
-                                            <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]] && pagosPorProducto[productos[cuota.producto]].pendientes}</td>
-                                            <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]] && pagosPorProducto[productos[cuota.producto]].pagados}</td>
+                                            <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]]?.pendientes || 0}</td>
+                                            <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]]?.pagados || 0}</td>
                                             <td className="py-2 border">
                                                 {cuota.estadoCouta === "Completado" ? (
                                                     <span>Pago Completado</span>
                                                 ) : (
                                                     <button
                                                         onClick={() => handlePagoClick(cuota)}
-                                                        className="bg-blue-500 text-white px-4 py-2 rounded"
+                                                        className="bg-lime-500 hover:bg-gray-500 text-white px-4 py-2 rounded"
                                                     >
                                                         Ir a Pago
                                                     </button>

@@ -1,18 +1,24 @@
 import React, { useState, useEffect } from 'react';
+import { ToastContainer, toast } from 'react-toastify';
+import { useNavigate } from 'react-router-dom';
+import 'react-toastify/dist/ReactToastify.css';
 import axios from 'axios';
 
 const FormuCuotas = () => {
+    const navigate = useNavigate();
     const [clientes, setClientes] = useState([]);
     const [productos, setProductos] = useState([]);
     const [formData, setFormData] = useState({
         clienteId: '',
         productoId: '',
-        montoTotal: null, // Change initial value to null
+        montoTotal: null,
         cantidadCuotas: '',
-        fechaPago: new Date().toISOString().split('T')[0]
+        fechaPago: new Date(Date.now()).toISOString().split('T')[0]
     });
+
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
+    const [modalOpen, setModalOpen] = useState(false); // Estado para controlar si el modal está abierto
 
     useEffect(() => {
         const fetchData = async () => {
@@ -46,7 +52,6 @@ const FormuCuotas = () => {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
-        console.log(`Seleccionado ${name}: ${value}`);
         
         if (name === 'productoId') {
             const selectedProduct = productos.find(producto => producto._id === value);
@@ -54,7 +59,7 @@ const FormuCuotas = () => {
                 setFormData(prevData => ({
                     ...prevData,
                     [name]: value,
-                    montoTotal: selectedProduct.precio.toString()
+                    montoTotal: selectedProduct.precio.toFixed(2) // Convert price to fixed decimal
                 }));
             }
         } else {
@@ -68,6 +73,18 @@ const FormuCuotas = () => {
     const handleSubmit = (event) => {
         event.preventDefault();
         const { clienteId, productoId, montoTotal, cantidadCuotas, fechaPago } = formData;
+
+        // Validations
+        if (!clienteId || !productoId || !montoTotal || !cantidadCuotas || !fechaPago) {
+            toast.error('Por favor completa todos los campos.');
+            return;
+        }
+
+        if (parseInt(cantidadCuotas) > 24 ) {
+            setModalOpen(true); // Abre el modal si se exceden los límites
+            return;
+        }
+
         const data = {
             producto: productoId,
             usuario: clienteId,
@@ -85,11 +102,21 @@ const FormuCuotas = () => {
             }
         )
             .then(response => {
-                console.log('Cuota registrada:', response.data);
+                console.log(response);
+                toast.success('Cuota registrada');
+                setTimeout(() => {
+                    navigate('/Inicio/VistaDeClientes');
+                }, 2000);
+
             })
             .catch(error => {
-                console.error('Error registrando cuota:', error);
+                toast.error('No se pudo registrar la cuota');
             });
+    };
+
+    const handleModalConfirm = () => {
+        setModalOpen(false);
+        handleSubmit(); // Envía el formulario cuando se confirma en el modal
     };
 
     if (loading) {
@@ -136,14 +163,15 @@ const FormuCuotas = () => {
                         </select>
                     </div>
                     <div>
-                        <label className="block font-semibold mb-2">Monto Total</label>
+                        <label className="block font-semibold mb-2">Monto Total (Bs)</label>
                         <input
                             type="number"
                             name="montoTotal"
-                            value={formData.montoTotal || ''} // Ensure montoTotal is either a string or an empty string
+                            value={formData.montoTotal || ''}
                             onChange={handleChange}
                             className="border p-2 rounded w-full"
                             required
+                            disabled // Bloquea el campo de monto total
                         />
                     </div>
                     <div>
@@ -169,12 +197,29 @@ const FormuCuotas = () => {
                         />
                     </div>
                     <div>
-                        <button type="submit" className="bg-blue-500 text-white px-4 py-2 rounded">
+                        <button type="submit" className="bg-lime-500 hover:bg-gray-500 text-white px-4 py-2 rounded">
                             Registrar
                         </button>
                     </div>
                 </form>
             </div>
+            {/* Modal de confirmación */}
+            {modalOpen && (
+                <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50">
+                    <div className="bg-white p-8 rounded-lg text-center">
+                        <p>La cantidad de cuotas o el monto total excede los límites. ¿Desea continuar?</p>
+                        <div className="mt-4">
+                            <button onClick={() => setModalOpen(false)} className="bg-gray-300 hover:bg-gray-400 text-gray-800 font-semibold px-4 py-2 mr-2 rounded">
+                                Cancelar
+                            </button>
+                            <button onClick={handleModalConfirm} className="bg-red-500 hover:bg-red-600 text-white font-semibold px-4 py-2 rounded">
+                                Continuar
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            )}
+            <ToastContainer />
         </div>
     );
 };

@@ -1,11 +1,9 @@
-// ListaPago.jsx
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
-import { useCliente } from './ClienteContext';
+import { toast, ToastContainer } from 'react-toastify';
 
 const ListaPago = () => {
-    const { clienteSeleccionado } = useCliente();
     const [cuotaParaPago, setCuotaParaPago] = useState(null);
     const [opcionPago, setOpcionPago] = useState('');
     const [cuotaSeleccionada, setCuotaSeleccionada] = useState('');
@@ -14,23 +12,12 @@ const ListaPago = () => {
     const navigate = useNavigate();
 
     useEffect(() => {
-        const fetchCuotas = async () => {
-            if (clienteSeleccionado && clienteSeleccionado._id) {
-                try {
-                    const token = localStorage.getItem('token');
-                    const response = await axios.get(`http://localhost:3001/api/cuotas/usuario/${clienteSeleccionado._id}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    });
-                    setCuotaParaPago(response.data);
-                } catch (error) {
-                    console.error('Error al obtener las cuotas del usuario:', error);
-                }
-            }
-        };
-        fetchCuotas();
-    }, [clienteSeleccionado]);
+        const datosPagoString = localStorage.getItem('datosPago');
+        if (datosPagoString) {
+            const datosPago = JSON.parse(datosPagoString);
+            setCuotaParaPago(datosPago);
+        }
+    }, []);
 
     useEffect(() => {
         if (opcionPago && cuotaParaPago) {
@@ -59,7 +46,6 @@ const ListaPago = () => {
 
     const handleModalConfirm = () => {
         registrarPago();
-        localStorage.removeItem('datosPago');
         setModalVisible(false);
     };
 
@@ -67,9 +53,9 @@ const ListaPago = () => {
         const data = {
             idPago: [cuotaSeleccionada],
         };
-        const cliente = clienteSeleccionado._id;
+        const clienteId = cuotaParaPago.idUsuario;
         const token = localStorage.getItem('token');
-        axios.post(`http://localhost:3001/api/pagos/create/${cliente}`,
+        axios.post(`http://localhost:3001/api/pagos/create/${clienteId}`,
             data,
             {
                 headers: {
@@ -80,7 +66,7 @@ const ListaPago = () => {
             .then(response => {
                 toast.success('Pago realizado');
                 setTimeout(() => {
-                    navigate('/Inicio/VistaInfo', { state: { cliente: clienteSeleccionado } }); // Pasar el cliente en la navegación
+                    navigate('/Inicio/VistaInfo', { state: { clienteId } });
                 }, 2000);
             })
             .catch(error => {
@@ -96,7 +82,7 @@ const ListaPago = () => {
                     <div className="grid grid-cols-1 gap-6">
                         <div>
                             <label className="block font-semibold mb-2">Nombre del Cliente</label>
-                            <p>{clienteSeleccionado.nombre}</p>
+                            <p>{cuotaParaPago.nombreUsuario}</p>
                         </div>
                         <div className="block font-semibold mb-2">
                             <label>Opción de Pago</label>
@@ -121,10 +107,11 @@ const ListaPago = () => {
                                 </div>
                             </div>
                         )}
-                        <button onClick={() => setModalVisible(true)}>Pagar</button>
+                        <button onClick={() => setModalVisible(true)}>Pagar</button> {/* Botón para mostrar el modal */}
                     </div>
                 )}
             </div>
+            {/* Modal de confirmación */}
             {modalVisible && (
                 <div className="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex justify-center items-center">
                     <div className="bg-white p-8 rounded shadow-lg">

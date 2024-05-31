@@ -38,7 +38,7 @@ const ListaClientes = () => {
     };
 
     const handleOpenModalInfo = (cliente) => {
-        navigate('/Inicio/VistaInfo', { state: { cliente } });
+        navigate('/Inicio/VistaInfo', { state: { clienteId: cliente._id } });
     };
     
 
@@ -115,7 +115,7 @@ const ListaClientes = () => {
         <div className="p-8 bg-gray-100 min-h-screen flex flex-col">
             <div className="flex justify-between items-center mb-8">
                 <h1 className="text-4xl font-bold text-gray-700">Lista de Clientes</h1>
-                <button onClick={handleOpenModalAddClient} className="bg-lime-300 hover:bg-lime-400 text-white font-bold py-2 px-4 rounded">
+                <button onClick={handleOpenModalAddClient} className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
                     Agregar Cliente
                 </button>
 
@@ -128,7 +128,7 @@ const ListaClientes = () => {
                     placeholder="Buscar por nombre o CI..."
                     className="p-2 border border-gray-300 rounded-l w-full focus:outline-none"
                 />
-                <button onClick={fetchClientes} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded-r focus:outline-none">
+                <button onClick={fetchClientes} className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-r focus:outline-none">
                     Buscar
                 </button>
             </div>
@@ -140,7 +140,6 @@ const ListaClientes = () => {
                         carnet={cliente.cedulaIdentidad}
                         nombre={cliente.username}
                         onMoreInfo={() => {}}
-                        onPay={() => navigate('/Inicio/VistaDePago')}
                         onAdd={() =>  handleOpenModalInfo(cliente)}
                         onEdit={() => handleOpenModal(cliente._id)}
                         onDelete={() => handleEliminarCliente(cliente._id)}
@@ -148,7 +147,7 @@ const ListaClientes = () => {
                 ))}
             </div>
             <div className="flex justify-center mt-4">
-                <button onClick={handlePrevPage} className="bg-lime-300 hover:bg-lime-400 text-white font-bold py-2 px-4 rounded-l focus:outline-none" disabled={currentPage === 1}>
+                <button onClick={handlePrevPage} className="bg-lime-500 hover:bg-l-400 text-white font-bold py-2 px-4 rounded-l focus:outline-none" disabled={currentPage === 1}>
                     Anterior
                 </button>
                 <p className="bg-lime-300 text-white font-bold py-2 px-4">{currentPage}/{totalPages}</p>

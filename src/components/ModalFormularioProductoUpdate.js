@@ -1,13 +1,35 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 
-const FormuProducto = ({ onClose }) => {
+const ModalFormularioUpdateProd = ({ productId, onClose }) => {
     const [formData, setFormData] = useState({
         nombreProducto: '',
         precio: '',
         descripcion: ''
-        
     });
+
+    useEffect(() => {
+        fetchProductData();
+    }, [productId]); // Se ejecuta cada vez que la productId cambia
+
+    const fetchProductData = async () => {
+        const token = localStorage.getItem('token');
+        try {
+            const response = await axios.get(`http://localhost:3001/api/productos/${productId}`, {
+                headers: {
+                    Authorization: `Bearer ${token}`
+                }
+            });
+            const productData = response.data;
+            setFormData({
+                nombreProducto: productData.nombreProducto,
+                precio: productData.precio.toString(),
+                descripcion: productData.descripcion
+            });
+        } catch (error) {
+            console.error('Error al obtener los datos del producto:', error);
+        }
+    };
 
     const handleChange = (event) => {
         const { name, value } = event.target;
@@ -27,10 +49,9 @@ const FormuProducto = ({ onClose }) => {
             descripcion: formData.descripcion
         };
         
-        //Con Token
         try {
-            await axios.post(
-                'http://localhost:3001/api/productos/create',
+            await axios.patch(
+                `http://localhost:3001/api/productos/${productId}`,
                 requestBody, 
                 {
                     headers: {
@@ -38,13 +59,12 @@ const FormuProducto = ({ onClose }) => {
                     }
                 }
             );
-            console.log('Producto registrado:');
+            console.log('Producto actualizado');
             onClose();
         } catch (error) {
-            console.error('Error al registrar producto:', error.message);
+            console.error('Error al actualizar el producto:', error.message);
         }
     };
-    
 
     return (
         <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-30">
@@ -54,7 +74,7 @@ const FormuProducto = ({ onClose }) => {
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
-                <h1 className="text-xl md:text-lg font-bold text-gray-700">Registro de Producto</h1>
+                <h1 className="text-xl md:text-lg font-bold text-gray-700">Actualizar Producto</h1>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4" method='post'>
                     {Object.keys(formData).map((key) => (
                         <div key={key} className="flex flex-col">
@@ -70,7 +90,7 @@ const FormuProducto = ({ onClose }) => {
                         </div>
                     ))}
                     <div className="flex justify-end col-span-2">
-                        <button type="submit" className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">Confirmar Registro</button>
+                        <button type="submit" className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">Confirmar Actualización</button>
                     </div>
                 </form>
             </div>
@@ -78,4 +98,4 @@ const FormuProducto = ({ onClose }) => {
     );
 };
 
-export default FormuProducto;
+export default ModalFormularioUpdateProd;
