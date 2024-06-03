@@ -1,28 +1,19 @@
-// ModalEliminar.js
 import React from 'react';
-import axios from 'axios';
+import { APIFunctions } from '../axiosInstance';
 
-const ModalEliminar = ({ clientId, onClose, updateClientData }) => {
+const ModalEliminar = ({ clientId, onClose, updateClientData, token }) => {
     const handleEliminarCliente = async () => {
-        const token = localStorage.getItem('token');
         try {
-            console.log("ID del cliente a eliminar:", clientId);
-            await axios.delete(`http://localhost:3001/api/autenticacion/eliminar/${clientId}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        );
-            console.log("Cliente eliminado con éxito.");
+            const token = localStorage.getItem('token');
+            const response = await APIFunctions.autenticacion.eliminar(null, clientId, token);
+            console.log("Cliente eliminado con éxito:", response);
             onClose(true); 
-            updateClientData(); // Actualizar la lista de clientes
+            updateClientData(); 
         } catch (error) {
             console.error("Error al eliminar el cliente:", error);
             alert('Hubo un error al eliminar el cliente. Por favor, inténtalo de nuevo.');
         }
     };
-    
 
     return (
         <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-30">

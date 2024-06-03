@@ -1,13 +1,13 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import { APIFunctions } from '../axiosInstance';
 
 const Formulario = () => {
     const [formData, setFormData] = useState({
-        Nombre: '',
-        Contrasena: ''
+        username: '',
+        password: ''
     });
     const [loading, setLoading] = useState(false);
     const navigate = useNavigate();
@@ -20,27 +20,22 @@ const Formulario = () => {
         });
     };
 
-    //Recibe Token
     const handleSubmit = async (event) => {
         event.preventDefault();
         setLoading(true);
-    
+      
         try {
-            const response = await axios.post('http://localhost:3001/api/autenticacion/login', {
-                username: formData.Nombre,
-                password: formData.Contrasena
-            });
-            const token = response.data.token;
+            const response = await APIFunctions.autenticacion.login(formData);
+            const token = response.token;
             if (token) {
                 localStorage.setItem('token', token);
-                if(response.data.data.rol === 'Administrador'){
+                if(response.data.rol === 'Administrador'){
                     navigate('/Inicio');
-                }else{
-                    toast.success('Hola Usuario')
+                } else {
+                    toast.success('Hola Usuario');
                 }
-                
             } else {
-                toast.error('No se recibió un token después de iniciar sesión',{
+                toast.error('No se recibió un token después de iniciar sesión', {
                     position: "top-right",
                     autoClose: 3000,
                 });
@@ -52,7 +47,7 @@ const Formulario = () => {
                     autoClose: 3000,
                 });
             } else {
-                toast.error('Ocurrió un error al iniciar sesión');
+                console.error('Ocurrió un error al iniciar sesión:', error.message);
             }
         } finally {
             setLoading(false);
@@ -68,8 +63,8 @@ const Formulario = () => {
                     <div className="mb-4">
                         <input
                             type="text"
-                            name="Nombre"
-                            value={formData.Nombre}
+                            name="username"
+                            value={formData.username}
                             placeholder="Usuario"
                             onChange={handleChange}
                             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"
@@ -79,8 +74,8 @@ const Formulario = () => {
                     <div className="mb-4">
                         <input
                             type="password"
-                            name="Contrasena"
-                            value={formData.Contrasena}
+                            name="password"
+                            value={formData.password}
                             placeholder="Contraseña"
                             onChange={handleChange}
                             className="w-full px-4 py-2 border rounded-lg focus:outline-none focus:ring-2 focus:ring-gray-500"

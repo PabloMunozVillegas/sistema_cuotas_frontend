@@ -5,6 +5,7 @@ import ModalEliminar from '../components/ModalEliminar';
 import FormuUpdateClien from '../components/ModalFormularioUpdateCli';
 import FormuClien from '../components/ModalFormularioCli';
 import Card from './components/Card';
+import { APIFunctions } from '../axiosInstance';
 
 const ListaClientes = () => {
     const navigate = useNavigate();
@@ -22,20 +23,23 @@ const ListaClientes = () => {
     }, [currentPage, searchQuery, limit]);
 
     const fetchClientes = async () => {
-        const token = localStorage.getItem('token');
+        const formData = {
+            pagina: currentPage,
+            limite: limit,
+            buscar: searchQuery,
+        }
+        
         try {
-            const response = await axios.get(`http://localhost:3001/api/autenticacion/listar/clientes?pagina=${currentPage}&limite=${limit}&buscar=${searchQuery}`,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            setClientes(response.data.data);
-            setTotalPages(response.data.paginas);
+            const token = localStorage.getItem('token');
+            console.log("Token:", token);
+            await APIFunctions.autenticacion.getClientes(null, token); // Corrección aquí
+           
         } catch (error) {
             console.error(error);
         }
     };
+    
+    
 
     const handleOpenModalInfo = (cliente) => {
         navigate('/Inicio/VistaInfo', { state: { clienteId: cliente._id } });

@@ -13,7 +13,6 @@ import VistaGeneral from './VistaInfo';
 
 function App() {
   const token = localStorage.getItem('token');
-  
   return (
     <div>
         <Routes>

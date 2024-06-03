@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
-import axios from 'axios';
 import DateTimeDisplay from './FechaHora'; 
 import { toast, ToastContainer } from 'react-toastify';
+import { APIFunctions } from '../axiosInstance';
 
 const FormuClien = ({ onClose }) => {
     const [formData, setFormData] = useState({
@@ -31,6 +31,7 @@ const FormuClien = ({ onClose }) => {
             handleNextField(event);
         }
     };
+    
     const handleNextField = (event) => {
         const form = event.target.form;
         const index = Array.prototype.indexOf.call(form, event.target);
@@ -41,10 +42,8 @@ const FormuClien = ({ onClose }) => {
             handleSubmit(event);
         }
     };
-    
     const handleSubmit = async (event) => {
         event.preventDefault();
-        const token = localStorage.getItem('token');
         if (!formData.cedulaIdentidad || !formData.nombres || !formData.apellidos || !formData.username || !formData.password || !formData.email || !formData.telefono || !formData.direccion || !formData.genero || !formData.rol) {
             toast.error('Por favor, complete todos los campos obligatorios', {
                 position: "top-right",
@@ -61,15 +60,8 @@ const FormuClien = ({ onClose }) => {
             return;
         }
         try {
-            await axios.post(
-                'http://localhost:3001/api/autenticacion/create', 
-                formData, 
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            )
+            const token = localStorage.getItem('token');
+            await APIFunctions.autenticacion.create(formData, token); 
             toast.success('Usuario registrado exitosamente',{
                 position: "top-right",
                 autoClose: 3000,
@@ -91,7 +83,8 @@ const FormuClien = ({ onClose }) => {
             }
         }
     };
-    
+     
+   
     const handleClickOutside = (event) => {
         if (event.target === event.currentTarget) {
             onClose(); // Cierra el modal solo si se hace clic fuera del contenido del modal
