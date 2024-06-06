@@ -61,7 +61,7 @@ const FormuClien = ({ onClose }) => {
         }
         try {
             const token = localStorage.getItem('token');
-            await APIFunctions.autenticacion.create(formData, token); 
+            await APIFunctions.autenticacion.create(formData,null, token); 
             toast.success('Usuario registrado exitosamente',{
                 position: "top-right",
                 autoClose: 3000,

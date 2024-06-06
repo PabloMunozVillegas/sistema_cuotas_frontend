@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import DateTimeDisplay from './FechaHora'; 
 import { toast, ToastContainer } from 'react-toastify';
+import { APIFunctions } from '../axiosInstance';
 
 const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
     const [formData, setFormData] = useState({
@@ -46,16 +47,9 @@ const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
     const handleSubmit = async (event) => {
         event.preventDefault();
         const token = localStorage.getItem('token');
+        console.log(clientId)
         try {
-            await axios.patch(
-                `http://localhost:3001/api/autenticacion/actualizar/${clientId}`,
-                { ...formData, clientId },
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
+            await APIFunctions.autenticacion.updateCliente( formData, clientId, token);
             updateClientData();
     
             toast.success('Cliente actualizado exitosamente', {

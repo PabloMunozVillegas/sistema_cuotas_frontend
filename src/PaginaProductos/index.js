@@ -3,6 +3,7 @@ import axios from 'axios';
 import CardProducto from './components/CardProducto';
 import FormuProducto from '../components/ModalFormularioPro';
 import ModalFormularioUpdateProd from '../components/ModalFormularioProductoUpdate';
+import { APIFunctions } from '../axiosInstance';
 
 const ListaProducto = () => {
     const [productos, setProductos] = useState([]);
@@ -41,20 +42,13 @@ const ListaProducto = () => {
     }, []);
 
     const fetchProductos = async () => {
-        const token = localStorage.getItem('token');
         try {
-            const response = await axios.get(`http://localhost:3001/api/productos/listar`, {
-                params: {
-                    pagina: currentPage,
-                    limite: limit,
-                    buscar: searchQuery
-                },
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            setProductos(response.data.productos);
-            setTotalPages(response.data.totalPaginas);
+           
+            const enlace = `pagina=${currentPage}&limite=${limit}&buscar=${searchQuery}`;
+            const token = localStorage.getItem('token');
+            const response = await APIFunctions.producto.listarUrl(enlace, token);
+            setProductos(response.productos);
+            setTotalPages(response.totalPaginas);
         } catch (error) {
             console.error('Error al obtener la lista de productos:', error.message);
         }

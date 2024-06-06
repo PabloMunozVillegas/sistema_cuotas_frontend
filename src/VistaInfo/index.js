@@ -1,8 +1,7 @@
-// VistaGeneral.js
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
-import axios from 'axios';
 import moment from 'moment';
+import { APIFunctions } from '../axiosInstance';
 
 const VistaGeneral = () => {
     const location = useLocation();
@@ -10,27 +9,19 @@ const VistaGeneral = () => {
     const navigate = useNavigate();
     const [cliente, setCliente] = useState(null);
     const [cuotas, setCuotas] = useState([]);
-    const [pagos, setPagos] = useState([]);
     const [loading, setLoading] = useState(true);
     const [productos, setProductos] = useState({});
-    const [pagosPorProducto, setPagosPorProducto] = useState({});
+    const [pagos, setPagos] = useState([]);
+    const [pagosLoaded, setPagosLoaded] = useState(false);
 
     useEffect(() => {
         const fetchCliente = async () => {
-            if (clienteId) {
-                try {
-                    const token = localStorage.getItem('token');
-                    const response = await axios.get(`http://localhost:3001/api/autenticacion/cliente/${clienteId}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    });
-                    setCliente(response.data);
-                    setLoading(false);
-                } catch (error) {
-                    console.error('Error al obtener los datos del cliente:', error);
-                    setLoading(false);
-                }
+            try {
+                const token = localStorage.getItem('token');
+                const response = await APIFunctions.autenticacion.urlIdUnico(clienteId, token);
+                setCliente(response);
+            } catch (error) {
+                console.error('Error al obtener los datos del cliente:', error);
             }
         };
         fetchCliente();
@@ -38,84 +29,67 @@ const VistaGeneral = () => {
 
     useEffect(() => {
         const fetchCuotas = async () => {
-            if (clienteId) {
-                try {
-                    const token = localStorage.getItem('token');
-                    const response = await axios.get(`http://localhost:3001/api/cuotas/usuario/${clienteId}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    });
-                    setCuotas(response.data);
-                } catch (error) {
-                    console.error('Error al obtener las cuotas del usuario:', error);
-                }
+            try {
+                const token = localStorage.getItem('token');
+                const response = await APIFunctions.cuotas.urlIdUnico(clienteId, token);
+                setCuotas(response.cuotas || []);
+                setLoading(false);
+            } catch (error) {
+                console.error('Error al obtener las cuotas del usuario:', error);
+                setLoading(false);
             }
         };
-
-        const fetchPagos = async () => {
-            if (clienteId) {
-                try {
-                    const token = localStorage.getItem('token');
-                    const response = await axios.get(`http://localhost:3001/api/pagos/listar/${clienteId}`, {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    });
-                    setPagos(response.data);
-                } catch (error) {
-                    console.error('Error al obtener los pagos del cliente:', error);
-                }
-            }
-        };
-
         fetchCuotas();
-        fetchPagos();
     }, [clienteId]);
 
     useEffect(() => {
         const fetchProducto = async (idProducto) => {
             try {
                 const token = localStorage.getItem('token');
-                const response = await axios.get(`http://localhost:3001/api/productos/${idProducto}`, {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
+                const response = await APIFunctions.producto.urlIdUnico(idProducto, token);
                 setProductos(prevProductos => ({
                     ...prevProductos,
-                    [idProducto]: response.data.nombreProducto
+                    [idProducto]: response
                 }));
             } catch (error) {
                 console.error('Error al obtener el producto:', error);
             }
         };
-        cuotas.forEach(cuota => {
-            fetchProducto(cuota.producto);
-        });
+
+        const uniqueProductIds = [...new Set(cuotas.map(cuota => cuota.producto))];
+        uniqueProductIds.forEach(fetchProducto);
     }, [cuotas]);
 
     useEffect(() => {
-        const contarPagosPorProducto = () => {
-            const pagosPorProductoContador = {};
-            cuotas.forEach(cuota => {
-                const producto = productos[cuota.producto];
-                if (!pagosPorProductoContador[producto]) {
-                    pagosPorProductoContador[producto] = { pendientes: 0, pagados: 0 };
+        const fetchPagos = async () => {
+            if (cuotas.length > 0 && !pagosLoaded && cliente) {
+                try {
+                    const token = localStorage.getItem('token');
+                    const cuotaIds = cuotas.map(cuota => cuota._id);
+                    const promesasPagos = cuotaIds.map(async cuotaId => {
+                        const response = await APIFunctions.pagos.urlIdUnicoCliente(cuotaId, token);
+                        return response;
+                    });
+                    const resultadosPagos = await Promise.all(promesasPagos);
+                    setPagos(resultadosPagos);
+                    setPagosLoaded(true);
+                } catch (error) {
+                    console.error('Error al obtener los pagos del cliente:', error);
+                    setLoading(false);
                 }
-                const pagosPendientes = pagos.filter(pago => pago.cuotas === cuota._id && pago.estadoPago === "Pendiente").length;
-                const pagosPagados = pagos.filter(pago => pago.cuotas === cuota._id && pago.estadoPago === "Pagado").length;
-                pagosPorProductoContador[producto].pendientes += pagosPendientes;
-                pagosPorProductoContador[producto].pagados += pagosPagados;
-            });
-            setPagosPorProducto(pagosPorProductoContador);
+            }
         };
-        contarPagosPorProducto();
-    }, [cuotas, pagos, productos]);
+        fetchPagos();
+    }, [cuotas, pagosLoaded, cliente]);
 
     const handlePagoClick = (cuota) => {
+        if (!cliente) {
+            console.error('No se ha seleccionado un cliente.');
+            return;
+        }
+        
         const nombreCliente = `${cliente.nombres} ${cliente.apellidos}`;
-        const pagosDeCuota = pagos.filter(pago => pago.cuotas === cuota._id && pago.estadoPago === "Pendiente");
+        const pagosDeCuota = cuota.pagos.filter(pago => pago.estadoPago === "Pendiente");
         const pagosIds = pagosDeCuota.map(pago => pago._id);
         const montosAPagar = pagosDeCuota.map(pago => pago.totalPagado);
         const datosPago = {
@@ -124,7 +98,7 @@ const VistaGeneral = () => {
             idPagos: pagosIds,
             montosPagar: montosAPagar,
         };
-        localStorage.setItem('datosPago', JSON.stringify(datosPago));
+        setPagos(prevPagos => [...prevPagos, datosPago]);
         navigate('/Inicio/VistaDePago', { state: { clienteId } });
     };
 
@@ -169,44 +143,63 @@ const VistaGeneral = () => {
                                     <tr>
                                         <th className="py-2">Nombre del Producto</th>
                                         <th className="py-2">Fecha de Pago</th>
-                                        <th className="py-2">Monto a Pagar por mes</th>
-                                        <th className="py-2">Cuotas Pendientes</th>
-                                        <th className="py-2">Cuotas Pagados</th>
+                                        <th className="py-2">Estado de Cuota</th>
+                                        <th className="py-2">Cuotas pendientes</th>
+                                        <th className="py-2">Cuotas pagadas</th>
+                                        <th className="py-2">Monto pagos por mes</th>
+                                        <th className="py-2">Monto a Pagar total</th>
                                         <th className="py-2">Acciones</th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                    {cuotas.map(cuota => (
-                                        <tr key={cuota._id} className="text-center">
-                                            <td className="py-2 border">{productos[cuota.producto]}</td>
-                                            <td className="py-2 border">{moment.utc(cuota.fechaDePago).format('YYYY/MM/DD')}</td>
-                                            <td className="py-2 border">{cuota.montoPagar}</td>
-                                            <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]]?.pendientes || 0}</td>
-                                            <td className="py-2 border">{pagosPorProducto[productos[cuota.producto]]?.pagados || 0}</td>
-                                            <td className="py-2 border">
-                                                {cuota.estadoCouta === "Completado" ? (
-                                                    <span>Pago Completado</span>
-                                                ) : (
+                                {Array.isArray(cuotas) && cuotas.length > 0 ? (
+                                    cuotas.map((cuota) => {
+                                        const cuotaPago = pagos?.find(pago => pago.pagos.find(p => p.cuotas === cuota._id));
+                                        // Si cuotaPago existe, continúa con el código, de lo contrario, establece los valores en 0
+                                        const cuotasPendientes = cuotaPago ? cuotaPago.cuotasPendientes : 0;
+                                        const cuotasPagadas = cuotaPago ? cuotaPago.cuotasPagadas : 0;
+                                        const pagosPagados = cuotaPago ? cuotaPago.pagosPagados : 0;
+                                        const totalApagar = cuotaPago ? cuotaPago.totalApagar : 0;
+
+
+                                        return (
+                                            <tr key={cuota._id} className="text-center">
+                                                <td className="py-2 border">{productos[cuota.producto]?.nombreProducto || 'Nombre no disponible'}</td>
+                                                <td className="py-2 border">{moment.utc(cuota.fechaDePago).format('YYYY/MM/DD')}</td>
+                                                <td className="py-2 border">{cuota.estadoCouta === "Completado" ? "Pago Completado" : "Pendiente"}</td>
+                                                <td className="py-2 border">{cuotasPendientes}</td>
+                                                <td className="py-2 border">{cuotasPagadas}</td>
+                                                <td className="py-2 border">{pagosPagados}</td>
+                                                <td className="py-2 border">{totalApagar}</td>
+                                                <td className="py-2 border">
                                                     <button
                                                         onClick={() => handlePagoClick(cuota)}
+                                                        disabled={cuota.estadoCouta === "Completado"}
                                                         className="bg-lime-500 hover:bg-gray-500 text-white px-4 py-2 rounded"
                                                     >
                                                         Ir a Pago
                                                     </button>
-                                                )}
-                                            </td>
-                                        </tr>
-                                    ))}
-                                </tbody>
-                            </table>
-                        )}
-                    </div>
-                </>
-            ) : (
-                <p>Selecciona un cliente para ver su información.</p>
-            )}
+                                                </td>
+                                            </tr>
+                                        );
+                                    })
+                                ) : (
+                                    <tr>
+                                        <td colSpan="5" className="py-2 border text-center">No hay cuotas disponibles.</td>
+                                    </tr>
+                                )}
+
+            </tbody>
+        </table>
+    )}
         </div>
+    </>
+    ) : (
+        <p>Selecciona un cliente para ver su información.</p>
+    )}
+    </div>
     );
 };
 
 export default VistaGeneral;
+

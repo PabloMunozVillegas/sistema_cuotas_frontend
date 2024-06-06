@@ -1,8 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import 'react-toastify/dist/ReactToastify.css';
-import axios from 'axios';
+import { APIFunctions } from '../axiosInstance';
 
 const FormuCuotas = () => {
     const navigate = useNavigate();
@@ -18,27 +17,17 @@ const FormuCuotas = () => {
 
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState(null);
-    const [modalOpen, setModalOpen] = useState(false); // Estado para controlar si el modal está abierto
+    const [modalOpen, setModalOpen] = useState(false);
 
     useEffect(() => {
         const fetchData = async () => {
             setLoading(true);
             const token = localStorage.getItem('token');
             try {
-                const [clientesResponse, productosResponse] = await Promise.all([
-                    axios.get('http://localhost:3001/api/autenticacion/listar/clientes', {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    }),
-                    axios.get('http://localhost:3001/api/productos/listar', {
-                        headers: {
-                            Authorization: `Bearer ${token}`
-                        }
-                    })
-                ]);
-                setClientes(clientesResponse.data.data || []);
-                setProductos(productosResponse.data.productos || []);
+                const clientesResponse = await APIFunctions.autenticacion.listarUrl(null, token);
+                const productosResponse = await APIFunctions.producto.listarUrl(null, token);
+                setClientes(clientesResponse.data || []);
+                setProductos(productosResponse.productos || []);
             } catch (error) {
                 console.error('Error al obtener la lista de clientes o productos:', error);
                 setError('Error al obtener la lista de clientes o productos');
@@ -59,7 +48,7 @@ const FormuCuotas = () => {
                 setFormData(prevData => ({
                     ...prevData,
                     [name]: value,
-                    montoTotal: selectedProduct.precio.toFixed(2) // Convert price to fixed decimal
+                    montoTotal: selectedProduct.precio.toFixed(2)
                 }));
             }
         } else {
@@ -70,18 +59,17 @@ const FormuCuotas = () => {
         }
     };
 
-    const handleSubmit = (event) => {
+    const handleSubmit = async (event) => {
         event.preventDefault();
         const { clienteId, productoId, montoTotal, cantidadCuotas, fechaPago } = formData;
 
-        // Validations
         if (!clienteId || !productoId || !montoTotal || !cantidadCuotas || !fechaPago) {
             toast.error('Por favor completa todos los campos.');
             return;
         }
 
         if (parseInt(cantidadCuotas) > 24 ) {
-            setModalOpen(true); // Abre el modal si se exceden los límites
+            setModalOpen(true); 
             return;
         }
 
@@ -92,31 +80,28 @@ const FormuCuotas = () => {
             cantidadCuotas: parseInt(cantidadCuotas),
             fechaDePago: fechaPago
         };
-        const token = localStorage.getItem('token');
-        axios.post(`http://localhost:3001/api/cuotas/create/${clienteId}/${productoId}`, 
-            data,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            }
-        )
-            .then(response => {
-                console.log(response);
+
+        try {
+            const token = localStorage.getItem('token');
+            const enlace = `${clienteId}/${productoId}`;
+            const response = await APIFunctions.cuotas.create(data, enlace, token);
+            if (response === 201) {
                 toast.success('Cuota registrada');
                 setTimeout(() => {
                     navigate('/Inicio/VistaDeClientes');
                 }, 2000);
-
-            })
-            .catch(error => {
-                toast.error('No se pudo registrar la cuota');
-            });
+            } else {
+                toast.error('Error al registrar la cuota');
+            }
+        } catch (error) {
+            console.error(error);   
+            toast.error('Error al registrar la cuota');
+        }  
     };
 
     const handleModalConfirm = () => {
         setModalOpen(false);
-        handleSubmit(); // Envía el formulario cuando se confirma en el modal
+        handleSubmit();
     };
 
     if (loading) {
@@ -171,7 +156,7 @@ const FormuCuotas = () => {
                             onChange={handleChange}
                             className="border p-2 rounded w-full"
                             required
-                            disabled // Bloquea el campo de monto total
+                            disabled
                         />
                     </div>
                     <div>
@@ -203,7 +188,6 @@ const FormuCuotas = () => {
                     </div>
                 </form>
             </div>
-            {/* Modal de confirmación */}
             {modalOpen && (
                 <div className="fixed inset-0 flex items-center justify-center bg-gray-500 bg-opacity-50">
                     <div className="bg-white p-8 rounded-lg text-center">
@@ -219,7 +203,7 @@ const FormuCuotas = () => {
                     </div>
                 </div>
             )}
-            <ToastContainer />
+            <ToastContainer/>
         </div>
     );
 };

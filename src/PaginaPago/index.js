@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
+import { APIFunctions } from '../axiosInstance';
 
 const ListaPago = () => {
     const [cuotaParaPago, setCuotaParaPago] = useState(null);
@@ -49,29 +50,21 @@ const ListaPago = () => {
         setModalVisible(false);
     };
 
-    const registrarPago = () => {
+    const registrarPago = async () => {
         const data = {
             idPago: [cuotaSeleccionada],
         };
-        const clienteId = cuotaParaPago.idUsuario;
-        const token = localStorage.getItem('token');
-        axios.post(`http://localhost:3001/api/pagos/create/${clienteId}`,
-            data,
-            {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
+        const enlace = `${cuotaParaPago.idUsuario}`;
+        try{
+            const token = localStorage.getItem('token');
+            const response = await APIFunctions.pagos.create(null, enlace,token);
+            if (response === true){
+                console.log(response)
             }
-        )
-            .then(response => {
-                toast.success('Pago realizado');
-                setTimeout(() => {
-                    navigate('/Inicio/VistaInfo', { state: { clienteId } });
-                }, 2000);
-            })
-            .catch(error => {
-                toast.error('Error al registrar el pago:', error.message);
-            });
+        }catch (error){
+            console.log(error)
+        }
+        
     };
 
     return (

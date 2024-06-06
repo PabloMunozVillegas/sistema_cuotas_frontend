@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import ModalEliminar from '../components/ModalEliminar';
 import FormuUpdateClien from '../components/ModalFormularioUpdateCli';
@@ -23,21 +22,18 @@ const ListaClientes = () => {
     }, [currentPage, searchQuery, limit]);
 
     const fetchClientes = async () => {
-        const formData = {
-            pagina: currentPage,
-            limite: limit,
-            buscar: searchQuery,
-        }
+        const enlace = `pagina=${currentPage}&limite=${limit}&buscar=${searchQuery}`;
         
         try {
             const token = localStorage.getItem('token');
-            console.log("Token:", token);
-            await APIFunctions.autenticacion.getClientes(null, token); // Corrección aquí
-           
+            const response = await APIFunctions.autenticacion.listarUrl(enlace, token);
+            setClientes(response.data);
+            setTotalPages(response.totalPaginas);
         } catch (error) {
             console.error(error);
         }
     };
+    
     
     
 

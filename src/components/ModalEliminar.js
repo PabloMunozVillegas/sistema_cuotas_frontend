@@ -5,7 +5,7 @@ const ModalEliminar = ({ clientId, onClose, updateClientData, token }) => {
     const handleEliminarCliente = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await APIFunctions.autenticacion.eliminar(null, clientId, token);
+            const response = await APIFunctions.autenticacion.delete(clientId, token);
             console.log("Cliente eliminado con éxito:", response);
             onClose(true); 
             updateClientData(); 
