@@ -1,14 +1,15 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { APIFunctions } from '../axiosInstance';
+import moment from 'moment';
 
 const ListaPago = () => {
     const [cuotaParaPago, setCuotaParaPago] = useState(null);
     const [opcionPago, setOpcionPago] = useState('');
     const [cuotaSeleccionada, setCuotaSeleccionada] = useState('');
     const [totalAPagar, setTotalAPagar] = useState(0);
+    const [selectedCuotaName, setSelectedCuotaName] = useState('');
     const [modalVisible, setModalVisible] = useState(false);
     const navigate = useNavigate();
 
@@ -23,15 +24,17 @@ const ListaPago = () => {
     useEffect(() => {
         if (opcionPago && cuotaParaPago) {
             if (opcionPago === 'total') {
-                let total = 0;
-                cuotaParaPago.montosPagar.forEach(monto => {
-                    total += monto;
-                });
+                const total = cuotaParaPago.totalaApagar;
                 setTotalAPagar(total);
+                setSelectedCuotaName('');
             } else {
-                const index = parseInt(cuotaSeleccionada) - 1;
+                const index = parseInt(cuotaSeleccionada);
                 if (!isNaN(index) && index >= 0 && index < cuotaParaPago.montosPagar.length) {
                     setTotalAPagar(cuotaParaPago.montosPagar[index]);
+                    setSelectedCuotaName(cuotaParaPago.nombreCuota[index]);
+                } else {
+                    setTotalAPagar(0);
+                    setSelectedCuotaName('');
                 }
             }
         }
@@ -39,6 +42,9 @@ const ListaPago = () => {
 
     const handleOpcionPagoChange = (event) => {
         setOpcionPago(event.target.value);
+        setCuotaSeleccionada('');
+        setTotalAPagar(0);
+        setSelectedCuotaName('');
     };
 
     const handleCuotaSeleccionadaChange = (event) => {
@@ -51,20 +57,30 @@ const ListaPago = () => {
     };
 
     const registrarPago = async () => {
-        const data = {
-            idPago: [cuotaSeleccionada],
-        };
-        const enlace = `${cuotaParaPago.idUsuario}`;
-        try{
+        try {
             const token = localStorage.getItem('token');
-            const response = await APIFunctions.pagos.create(null, enlace,token);
-            if (response === true){
-                console.log(response)
+            let cuotasPagar = [];
+
+            if (opcionPago === 'total') {
+                cuotasPagar = [cuotaParaPago.cuotasPendientes];
+            } else {
+                cuotasPagar = [cuotaParaPago.cuotasPendientes[cuotaSeleccionada]];
             }
-        }catch (error){
-            console.log(error)
+
+            const response = await APIFunctions.pagos.create({
+                idPago: cuotasPagar
+            }, cuotaParaPago.idUsuario, token);
+
+            if (response) {
+                toast.success('Pago registrado con éxito');
+                navigate('/Inicio/VistaDePago');
+            } else {
+                toast.error('Error al registrar el pago');
+            }
+        } catch (error) {
+            console.error('Error al registrar el pago:', error);
+            toast.error('Error al registrar el pago');
         }
-        
     };
 
     return (
@@ -88,23 +104,25 @@ const ListaPago = () => {
                             </div>
                         </div>
                         {opcionPago === 'cuota' && (
-                            <div className="block font-semibold mb-2">
-                                <label>Cuota Seleccionada</label>
+                            <div>
+                                <label className="block font-semibold mb-2">
+                                    Cuota Seleccionada
+                                </label>
                                 <div className="flex flex-col">
                                     <select onChange={handleCuotaSeleccionadaChange} value={cuotaSeleccionada}>
                                         <option value="">Seleccionar Cuota</option>
-                                        {cuotaParaPago.idPagos.map((idPago, index) => (
-                                            <option key={index} value={idPago}>Cuota {index + 1}</option>
+                                        {cuotaParaPago && cuotaParaPago.nombreCuota && cuotaParaPago.nombreCuota.map((nombre, index) => (
+                                            <option key={index} value={index}>{`${nombre} - ${moment(cuotaParaPago.fechaPago[index]).format('YYYY/MM/DD')}`}</option>
                                         ))}
                                     </select>
+                                    <p className="mt-2">Nombre de la Cuota: {selectedCuotaName}</p>
                                 </div>
                             </div>
                         )}
-                        <button onClick={() => setModalVisible(true)}>Pagar</button> {/* Botón para mostrar el modal */}
+                        <button onClick={() => setModalVisible(true)} className="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded">Pagar</button>
                     </div>
                 )}
             </div>
-            {/* Modal de confirmación */}
             {modalVisible && (
                 <div className="fixed top-0 left-0 w-full h-full bg-gray-900 bg-opacity-50 flex justify-center items-center">
                     <div className="bg-white p-8 rounded shadow-lg">

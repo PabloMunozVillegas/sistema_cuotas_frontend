@@ -71,6 +71,7 @@ const VistaGeneral = () => {
                         return response;
                     });
                     const resultadosPagos = await Promise.all(promesasPagos);
+
                     setPagos(resultadosPagos);
                     setPagosLoaded(true);
                 } catch (error) {
@@ -87,20 +88,29 @@ const VistaGeneral = () => {
             console.error('No se ha seleccionado un cliente.');
             return;
         }
-        
+    
+        const cuotaPago = pagos?.find(pago => pago.pagos.find(p => p.cuotas === cuota._id));
         const nombreCliente = `${cliente.nombres} ${cliente.apellidos}`;
-        const pagosDeCuota = cuota.pagos.filter(pago => pago.estadoPago === "Pendiente");
-        const pagosIds = pagosDeCuota.map(pago => pago._id);
-        const montosAPagar = pagosDeCuota.map(pago => pago.totalPagado);
+        const nombreCuota = cuotaPago.pagos.map(pago => pago.numeroDeCuota);
+        const totalApagar = cuotaPago ? cuotaPago.totalApagar : 0;
+        const pagosDeCuota = cuotaPago.pagos.map(pago => pago.totalPagado);
+        
+        // Format fechaPago here
+        const fechaPago = cuotaPago.pagos.map(pago => moment.utc(pago.fechaPago).format('YYYY/MM/DD'));
+    
         const datosPago = {
             idUsuario: clienteId,
             nombreUsuario: nombreCliente,
-            idPagos: pagosIds,
-            montosPagar: montosAPagar,
+            nombreCuota: nombreCuota,
+            totalaApagar: totalApagar,
+            montosPagar: pagosDeCuota,
+            fechaPago: fechaPago
         };
+        localStorage.setItem('datosPago', JSON.stringify(datosPago));
         setPagos(prevPagos => [...prevPagos, datosPago]);
         navigate('/Inicio/VistaDePago', { state: { clienteId } });
     };
+    
 
     return (
         <div className="p-8 bg-white shadow-md rounded-lg">
@@ -155,12 +165,10 @@ const VistaGeneral = () => {
                                 {Array.isArray(cuotas) && cuotas.length > 0 ? (
                                     cuotas.map((cuota) => {
                                         const cuotaPago = pagos?.find(pago => pago.pagos.find(p => p.cuotas === cuota._id));
-                                        // Si cuotaPago existe, continúa con el código, de lo contrario, establece los valores en 0
                                         const cuotasPendientes = cuotaPago ? cuotaPago.cuotasPendientes : 0;
                                         const cuotasPagadas = cuotaPago ? cuotaPago.cuotasPagadas : 0;
                                         const pagosPagados = cuotaPago ? cuotaPago.pagosPagados : 0;
                                         const totalApagar = cuotaPago ? cuotaPago.totalApagar : 0;
-
 
                                         return (
                                             <tr key={cuota._id} className="text-center">
@@ -202,4 +210,3 @@ const VistaGeneral = () => {
 };
 
 export default VistaGeneral;
-
