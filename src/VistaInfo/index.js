@@ -1,7 +1,11 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import moment from 'moment';
+import 'moment/locale/es';
 import { APIFunctions } from '../axiosInstance';
+import { obtenerNombreMes } from '../utilsDate';
+
+moment.locale('es');
 
 const VistaGeneral = () => {
     const location = useLocation();
@@ -90,13 +94,27 @@ const VistaGeneral = () => {
         }
     
         const cuotaPago = pagos?.find(pago => pago.pagos.find(p => p.cuotas === cuota._id));
+        console.log('cuotaPago', cuotaPago);
         const nombreCliente = `${cliente.nombres} ${cliente.apellidos}`;
-        const nombreCuota = cuotaPago.pagos.map(pago => pago.numeroDeCuota);
-        const totalApagar = cuotaPago ? cuotaPago.totalApagar : 0;
-        const pagosDeCuota = cuotaPago.pagos.map(pago => pago.totalPagado);
         
-        // Format fechaPago here
-        const fechaPago = cuotaPago.pagos.map(pago => moment.utc(pago.fechaPago).format('YYYY/MM/DD'));
+        const nombreCuota = cuotaPago.pagos
+            .filter(pago => pago.estadoPago === 'Pendiente')
+            .map(pago => pago.numeroDeCuota);
+        
+        const totalApagar = cuotaPago ? cuotaPago.totalApagar : 0;
+        const pagosDeCuota = cuotaPago.pagos.filter(pago => pago.estadoPago === 'Pendiente').map(pago => pago.totalPagado);
+        
+        const fechaPagoArray = cuotaPago.pagos.filter(pago => pago.estadoPago === 'Pendiente').map(pago => {
+            const dia = moment.utc(pago.fechaPago).format('DD');
+            const mes = moment.utc(pago.fechaPago).format('MM');
+            const anio = moment.utc(pago.fechaPago).format('YYYY');
+            const nombreMes = obtenerNombreMes(parseInt(mes, 10));
+            return `${dia} de ${nombreMes} del ${anio}`;
+        });
+        const idPagos = cuotaPago.pagos.filter(pago => pago.estadoPago === 'Pendiente').map(pago => pago._id);
+        const cuotaSeleccionadaId = cuota._id; // Agregar el ID de la cuota seleccionada
+    
+        console.log(cuotaPago);
     
         const datosPago = {
             idUsuario: clienteId,
@@ -104,7 +122,9 @@ const VistaGeneral = () => {
             nombreCuota: nombreCuota,
             totalaApagar: totalApagar,
             montosPagar: pagosDeCuota,
-            fechaPago: fechaPago
+            fechaPago: fechaPagoArray,
+            pagosId: idPagos,
+            cuotaSeleccionadaId: cuotaSeleccionadaId // Incluir el ID de la cuota seleccionada
         };
         localStorage.setItem('datosPago', JSON.stringify(datosPago));
         setPagos(prevPagos => [...prevPagos, datosPago]);
@@ -180,12 +200,10 @@ const VistaGeneral = () => {
                                                 <td className="py-2 border">{pagosPagados}</td>
                                                 <td className="py-2 border">{totalApagar}</td>
                                                 <td className="py-2 border">
-                                                    <button
-                                                        onClick={() => handlePagoClick(cuota)}
-                                                        disabled={cuota.estadoCouta === "Completado"}
-                                                        className="bg-lime-500 hover:bg-gray-500 text-white px-4 py-2 rounded"
-                                                    >
-                                                        Ir a Pago
+                                                    <button 
+                                                        onClick={() => handlePagoClick(cuota)} 
+                                                        className="px-4 py-2 bg-blue-500 text-white rounded">
+                                                        Pagar
                                                     </button>
                                                 </td>
                                             </tr>
@@ -193,19 +211,18 @@ const VistaGeneral = () => {
                                     })
                                 ) : (
                                     <tr>
-                                        <td colSpan="5" className="py-2 border text-center">No hay cuotas disponibles.</td>
+                                        <td colSpan="8" className="text-center py-4">No se encontraron cuotas para este cliente.</td>
                                     </tr>
                                 )}
-
-            </tbody>
-        </table>
-    )}
+                                </tbody>
+                            </table>
+                        )}
+                    </div>
+                </>
+            ) : (
+                <p>Cargando cliente...</p>
+            )}
         </div>
-    </>
-    ) : (
-        <p>Selecciona un cliente para ver su información.</p>
-    )}
-    </div>
     );
 };
 
