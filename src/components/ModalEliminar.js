@@ -27,7 +27,7 @@ const ModalEliminar = ({ clientId, onClose, updateClientData, token }) => {
                 <p className="my-4">¿Estás seguro de que quieres eliminar este cliente?</p>
                 <div className="flex justify-end">
                     <button onClick={handleEliminarCliente} className="bg-red-500 hover:bg-red-700 text-white font-bold py-2 px-4 rounded mr-4">
-                        Sí, Eliminar
+                        Eliminar
                     </button>
                     <button onClick={() => onClose(false)} className="bg-gray-500 hover:bg-gray-700 text-white font-bold py-2 px-4 rounded">
                         Cancelar
