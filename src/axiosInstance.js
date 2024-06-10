@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'https://sistema-cuotas.onrender.com/';
+const API_BASE_URL = 'https://sistema-cuotas.onrender.com';
 
 const makeRequest = async (method, url, data = null, token = null) => {
   try {
