@@ -3,7 +3,7 @@ import React from 'react';
 import './App.css';
 import { Routes, Route} from 'react-router-dom';
 import FormuCuotas from './PaginaCuotas';
-import Formulario from './components/Formulario';
+import Formulario from './components/formulario';
 import PaginaInicio from './PaginaInicio';
 import Inicio from './PaginaInicio/components/Inicio';
 import ListaClientes from './PaginaUsuario';
