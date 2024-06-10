@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
 import DateTimeDisplay from './FechaHora'; 
 import { toast, ToastContainer } from 'react-toastify';
 import { APIFunctions } from '../axiosInstance';
@@ -19,18 +18,17 @@ const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
     useEffect(() => {
         const fetchCliente = async () => {
             try {
-                const token = localStorage.getItem('token');
-                const response = await axios.get(`http://localhost:3001/api/autenticacion/cliente/${clientId}`,{
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                });
-                const { cedulaIdentidad, nombres, apellidos, email, telefono, direccion, genero, rol } = response.data;
-                setFormData({ cedulaIdentidad, nombres, apellidos,  email, telefono, direccion, genero, rol });
+              const token = localStorage.getItem('token');
+              const enlace = `${clientId}`;
+              console.log(enlace);
+              const response = await APIFunctions.autenticacion.urlIdUnico(enlace, token); 
+              console.log(response)// Ensure the correct function name is used
+              const { cedulaIdentidad, nombres, apellidos, email, telefono, direccion, genero, rol } = response;
+              setFormData({ cedulaIdentidad, nombres, apellidos, email, telefono, direccion, genero, rol });
             } catch (error) {
-                console.error(error);
+              console.error(error);
             }
-        };
+          };
     
         fetchCliente();
     }, []); 
