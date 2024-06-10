@@ -3,12 +3,10 @@ import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
 import { APIFunctions } from '../axiosInstance';
 
-// Dentro del componente ListaPago
-
 const ListaPago = () => {
     const [cuotaParaPago, setCuotaParaPago] = useState(null);
     const [opcionPago, setOpcionPago] = useState('');
-    const [cuotasSeleccionadas, setCuotasSeleccionadas] = useState([]); // Estado para almacenar las cuotas seleccionadas
+    const [cuotasSeleccionadas, setCuotasSeleccionadas] = useState([]);
     const [totalAPagar, setTotalAPagar] = useState(0);
     const [modalVisible, setModalVisible] = useState(false);
     const navigate = useNavigate();
@@ -26,7 +24,6 @@ const ListaPago = () => {
             if (opcionPago === 'total') {
                 setTotalAPagar(cuotaParaPago.totalaApagar);
             } else {
-                // Calcular el total basado en las cuotas seleccionadas
                 let total = 0;
                 cuotasSeleccionadas.forEach(index => {
                     total += cuotaParaPago.montosPagar[index];
@@ -40,17 +37,15 @@ const ListaPago = () => {
         const selectedOption = event.target.value;
         setOpcionPago(selectedOption);
         if (selectedOption === 'total') {
-            setCuotasSeleccionadas([]); // Limpiar las cuotas seleccionadas al cambiar a 'total'
+            setCuotasSeleccionadas([]);
         }
     };
 
     const handleCuotaSeleccionadaChange = (event, index) => {
         const isChecked = event.target.checked;
         if (isChecked) {
-            // Si se selecciona una cuota, agregarla al estado de cuotas seleccionadas
             setCuotasSeleccionadas(prevState => [...prevState, index]);
         } else {
-            // Si se deselecciona una cuota, eliminarla del estado de cuotas seleccionadas
             setCuotasSeleccionadas(prevState => prevState.filter(item => item !== index));
         }
     };
@@ -60,34 +55,35 @@ const ListaPago = () => {
         setModalVisible(false);
     };
 
+    const navigateToVistaDePago = () => {
+        navigate('/Inicio/VistaDePago', { state: { clienteId: cuotaParaPago.idUsuario } });
+    };
+
     const registrarPago = async () => {
         try {
             const token = localStorage.getItem('token');
             let cuotasPagar = [];
 
-    
             if (opcionPago === 'total') {
                 cuotasPagar = cuotaParaPago.pagosId;
             } else if (opcionPago === 'cuota' && cuotasSeleccionadas.length > 0) {
                 cuotasPagar = cuotasSeleccionadas.map(index => cuotaParaPago.pagosId[index]);
             } else {
                 console.log('No se seleccionaron cuotas');
+                return;
             }
-    
-            const enlace = cuotaParaPago.idCuota;
-            console.log('enlace', enlace);
-            const data = cuotasPagar.map(id => ({ id }));
-            console.log('data', data);
-            const response = await APIFunctions.pagos.create( data, enlace , token);
-            console.log('response', response);
+
+            const enlace = cuotaParaPago.cuotaSeleccionadaId;
+            const data = cuotasPagar;
+            const response = await APIFunctions.pagos.create(data, enlace, token);
+            toast.success('Pago realizado con éxito!');
+            navigateToVistaDePago();
         } catch (error) {
             console.error('Error al registrar el pago:', error);
             toast.error('Error al registrar el pago');
         }
     };
-    
-    
-    
+
     return (
         <div className="p-8 bg-white flex flex-col justify-center min-h-screen">
             <div className="w-full max-w-screen-lg mx-auto">

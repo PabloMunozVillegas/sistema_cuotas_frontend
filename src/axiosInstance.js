@@ -40,18 +40,20 @@ const createAPIFunction = (props) => {
     if (enlace) {
       completeUrl += `/${enlace}`;
     }
-    console.log(completeUrl);
+    console.log('URL completa:', completeUrl);
 
     try {
-      const IdPago = {
+      const payload = {
         idPago: data
-      }
-      return await makeRequest(method, completeUrl, url === '/api/pagos/create' ?  {IdPago} : data, token);
+      };
+      console.log('Payload enviado:', payload);
+      return await makeRequest(method, completeUrl, url === '/api/pagos/create' ? payload : data, token);
     } catch (error) {
       throw error;
     }
   };
 };
+
 
 
 
