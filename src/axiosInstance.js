@@ -114,7 +114,7 @@ const deleteAPIFunction = (props) => {
 
 const actualizarAPIFunction = (props) => {
   const { method, url } = props;
-  return async (data = null, enlace = '', token) => {
+  return async (data = null, enlace = '', token=null) => {
     let completeUrl = `${API_BASE_URL}${url}`;
     if (enlace) {
       completeUrl += `/${enlace}`;

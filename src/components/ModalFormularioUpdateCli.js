@@ -20,9 +20,7 @@ const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
             try {
               const token = localStorage.getItem('token');
               const enlace = `${clientId}`;
-              console.log(enlace);
               const response = await APIFunctions.autenticacion.urlIdUnico(enlace, token); 
-              console.log(response)// Ensure the correct function name is used
               const { cedulaIdentidad, nombres, apellidos, email, telefono, direccion, genero, rol } = response;
               setFormData({ cedulaIdentidad, nombres, apellidos, email, telefono, direccion, genero, rol });
             } catch (error) {

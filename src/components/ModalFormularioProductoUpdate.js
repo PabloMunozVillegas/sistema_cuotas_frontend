@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import { APIFunctions } from '../axiosInstance';
+import { toast , ToastContainer } from 'react-toastify';
 
 const ModalFormularioUpdateProd = ({ productId, onClose }) => {
     const [formData, setFormData] = useState({
@@ -13,14 +14,12 @@ const ModalFormularioUpdateProd = ({ productId, onClose }) => {
     }, [productId]); // Se ejecuta cada vez que la productId cambia
 
     const fetchProductData = async () => {
-        const token = localStorage.getItem('token');
         try {
-            const response = await axios.get(`http://localhost:3001/api/productos/${productId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
-            const productData = response.data;
+            
+            const token = localStorage.getItem('token');
+            const enlace = `${productId}`;
+            const response = await APIFunctions.producto.urlIdUnico(enlace, token);
+            const productData = response;
             setFormData({
                 nombreProducto: productData.nombreProducto,
                 precio: productData.precio.toString(),
@@ -43,26 +42,41 @@ const ModalFormularioUpdateProd = ({ productId, onClose }) => {
         event.preventDefault();
         const token = localStorage.getItem('token');
         
+        // Ensure formData contains the correct properties
         const requestBody = {
             nombreProducto: formData.nombreProducto,
             precio: parseFloat(formData.precio),
             descripcion: formData.descripcion
         };
-        
+    
         try {
-            await axios.patch(
-                `http://localhost:3001/api/productos/${productId}`,
-                requestBody, 
-                {
-                    headers: {
-                        Authorization: `Bearer ${token}`
-                    }
-                }
-            );
-            console.log('Producto actualizado');
+            const enlace = `${productId}`;
+            
+            // Logging to debug
+            console.log('Request Body:', requestBody);
+            console.log('Enlace:', enlace);
+            console.log('Token:', token);
+    
+            // Ensure APIFunctions.producto.actualizar is a function
+            if (typeof APIFunctions.producto.actualizar !== 'function') {
+                throw new Error('APIFunctions.producto.actualizar is not a function');
+            }
+    
+            // Await the API call and log the response
+            const response = await APIFunctions.producto.actualizar(requestBody, enlace, token);
+            console.log('Producto actualizado:', response);
+    
+            // Close the form
             onClose();
         } catch (error) {
-            console.error('Error al actualizar el producto:', error.message);
+            // Improved error handling
+            console.error('Error al actualizar el producto:', error.message || error);
+    
+            // Optional: Show user-friendly error message (if using a notification library like react-toastify)
+            toast.error('Error al actualizar el producto. Inténtelo de nuevo más tarde.', {
+                position: "top-right",
+                autoClose: 3000,
+            });
         }
     };
 
@@ -94,6 +108,7 @@ const ModalFormularioUpdateProd = ({ productId, onClose }) => {
                     </div>
                 </form>
             </div>
+            <ToastContainer />
         </div>
     );
 };
