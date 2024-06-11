@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import ModalEliminar from '../../../components/ModalEliminar';
-import FormuUpdateClien from '../../../components/ModalFormularioUpdateCli';
-import FormuClien from '../../../components/ModalFormularioCli';
+import FormuUpdateClien from './components/ModalFormularioUpdateCli';
+import FormuClien from './components/ModalFormularioCli';
 import Card from './components/Card';
 import { APIFunctions } from '../../../axiosInstance';
 

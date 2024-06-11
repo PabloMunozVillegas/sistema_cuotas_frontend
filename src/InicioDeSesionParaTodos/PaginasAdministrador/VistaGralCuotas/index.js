@@ -1,108 +1,9 @@
-import React, { useState, useEffect } from 'react';
-import { ToastContainer, toast } from 'react-toastify';
-import { useNavigate } from 'react-router-dom';
-import { APIFunctions } from '../../../axiosInstance';
+import React from 'react';
+import  ToastInstance from '../../../toastInstance';
+import useCuotasForm from './handleCuotas'; // Importamos el hook creado
 
 const FormuCuotas = () => {
-    const navigate = useNavigate();
-    const [clientes, setClientes] = useState([]);
-    const [productos, setProductos] = useState([]);
-    const [formData, setFormData] = useState({
-        clienteId: '',
-        productoId: '',
-        montoTotal: null,
-        cantidadCuotas: '',
-        fechaPago: new Date(Date.now()).toISOString().split('T')[0]
-    });
-
-    const [loading, setLoading] = useState(true);
-    const [error, setError] = useState(null);
-    const [modalOpen, setModalOpen] = useState(false);
-
-    useEffect(() => {
-        const fetchData = async () => {
-            setLoading(true);
-            const token = localStorage.getItem('token');
-            try {
-                const clientesResponse = await APIFunctions.autenticacion.listarUrl(null, token);
-                const productosResponse = await APIFunctions.producto.listarUrl(null, token);
-                setClientes(clientesResponse.data || []);
-                setProductos(productosResponse.productos || []);
-            } catch (error) {
-                console.error('Error al obtener la lista de clientes o productos:', error);
-                setError('Error al obtener la lista de clientes o productos');
-            } finally {
-                setLoading(false);
-            }
-        };
-
-        fetchData();
-    }, []);
-
-    const handleChange = (event) => {
-        const { name, value } = event.target;
-        
-        if (name === 'productoId') {
-            const selectedProduct = productos.find(producto => producto._id === value);
-            if (selectedProduct) {
-                setFormData(prevData => ({
-                    ...prevData,
-                    [name]: value,
-                    montoTotal: selectedProduct.precio.toFixed(2)
-                }));
-            }
-        } else {
-            setFormData(prevData => ({
-                ...prevData,
-                [name]: value
-            }));
-        }
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const { clienteId, productoId, montoTotal, cantidadCuotas, fechaPago } = formData;
-
-        if (!clienteId || !productoId || !montoTotal || !cantidadCuotas || !fechaPago) {
-            toast.error('Por favor completa todos los campos.');
-            return;
-        }
-
-        if (parseInt(cantidadCuotas) > 24 ) {
-            setModalOpen(true); 
-            return;
-        }
-
-        const data = {
-            producto: productoId,
-            usuario: clienteId,
-            montoTotal: parseFloat(montoTotal),
-            cantidadCuotas: parseInt(cantidadCuotas),
-            fechaDePago: fechaPago
-        };
-
-        try {
-            const token = localStorage.getItem('token');
-            const enlace = `${clienteId}/${productoId}`;
-            const response = await APIFunctions.cuotas.create(data, enlace, token);
-            if (response === 201) {
-                toast.success('Cuota registrada');
-                setTimeout(() => {
-                    navigate('/Inicio/VistaDeClientes');
-                }, 2000);
-            } else {
-                toast.error('Error al registrar la cuota');
-            }
-        } catch (error) {
-            console.error(error);   
-            toast.error('Error al registrar la cuota');
-        }  
-    };
-
-    const handleModalConfirm = () => {
-        setModalOpen(false);
-        handleSubmit();
-    };
+    const { clientes, productos, formData, loading, error, modalOpen, handleChange, handleSubmit, handleModalConfirm, setModalOpen } = useCuotasForm();
 
     if (loading) {
         return <div className="text-black">Cargando...</div>;
@@ -128,7 +29,7 @@ const FormuCuotas = () => {
                         >
                             <option value="">Seleccionar Cliente</option>
                             {clientes.map(cliente => (
-                                <option key={cliente._id} value={cliente._id}>{cliente.nombres}</option>
+                                <option key={cliente._id} value={cliente._id}>{`${cliente.nombres} - ${cliente.cedulaIdentidad}`}</option> // Añadimos la cedula del cliente
                             ))}
                         </select>
                     </div>
@@ -203,7 +104,7 @@ const FormuCuotas = () => {
                     </div>
                 </div>
             )}
-            <ToastContainer/>
+            <ToastInstance/>
         </div>
     );
 };

@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
-import { APIFunctions } from '../axiosInstance';
-import { toast , ToastContainer } from 'react-toastify';
+import { APIFunctions } from '../../../../axiosInstance';
+import ToastInstance from '../../../../toastInstance';
 const FormuProducto = ({ onClose }) => {
     const [formData, setFormData] = useState({
         nombreProducto: '',
@@ -27,19 +27,12 @@ const FormuProducto = ({ onClose }) => {
             descripcion: formData.descripcion
         };
         
-        //Con Token
         try {
             await APIFunctions.producto.create(requestBody, null, token);
-            toast.success('Producto registrado exitosamente', {
-                position: "top-right",
-                autoClose: 3000,
-            });
+            ToastInstance({ type: 'success', message: 'Producto registrado exitosamente' });
             onClose();
         } catch (error) {
-            toast.error('Error al registrar producto. Inténtelo de nuevo más tarde.', {
-                position: "top-right",
-                autoClose: 3000,
-            });
+            ToastInstance({ type: 'error', message: 'Error al registrar producto. Inténtelo de nuevo más tarde.' });
         }
     };
     
@@ -72,7 +65,7 @@ const FormuProducto = ({ onClose }) => {
                     </div>
                 </form>
             </div>
-            <ToastContainer/>
+            <ToastInstance/>
         </div>
     );
 };

@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { APIFunctions } from '../axiosInstance';
+import { APIFunctions } from '../../../../axiosInstance';
 import { toast , ToastContainer } from 'react-toastify';
 
 const ModalFormularioUpdateProd = ({ productId, onClose }) => {

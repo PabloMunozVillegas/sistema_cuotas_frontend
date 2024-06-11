@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import CardProducto from './components/CardProducto';
-import FormuProducto from '../../../components/ModalFormularioPro';
-import ModalFormularioUpdateProd from '../../../components/ModalFormularioProductoUpdate';
+import FormuProducto from './components/ModalFormularioPro';
+import ModalFormularioUpdateProd from './components/ModalFormularioProductoUpdate';
 import { APIFunctions } from '../../../axiosInstance';
 
 const ListaProducto = () => {

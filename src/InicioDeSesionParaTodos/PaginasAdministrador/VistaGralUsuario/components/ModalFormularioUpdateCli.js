@@ -1,7 +1,6 @@
 import React, { useState, useEffect } from 'react';
-import DateTimeDisplay from './FechaHora'; 
 import { toast, ToastContainer } from 'react-toastify';
-import { APIFunctions } from '../axiosInstance';
+import { APIFunctions } from '../../../../axiosInstance';
 
 const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
     const [formData, setFormData] = useState({
@@ -84,7 +83,7 @@ const FormuUpdateClien = ({ onClose, clientId, updateClientData }) => {
                 </button>
                 <div className="flex justify-between items-center mb-2">
                     <h1 className="text-xl md:text-lg font-bold text-gray-700">Actualizar Cliente</h1>
-                    <DateTimeDisplay className="font-bold" />
+                    
                 </div>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
                     {Object.keys(formData).map((key) => (
