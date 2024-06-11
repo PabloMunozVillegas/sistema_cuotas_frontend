@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { toast, ToastContainer } from 'react-toastify';
-import { APIFunctions } from '../axiosInstance';
+import { APIFunctions } from '../../../axiosInstance';
 
 const ListaPago = () => {
     const [cuotaParaPago, setCuotaParaPago] = useState(null);

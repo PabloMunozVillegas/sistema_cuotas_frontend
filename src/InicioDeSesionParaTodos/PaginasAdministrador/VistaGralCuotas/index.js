@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { ToastContainer, toast } from 'react-toastify';
 import { useNavigate } from 'react-router-dom';
-import { APIFunctions } from '../axiosInstance';
+import { APIFunctions } from '../../../axiosInstance';
 
 const FormuCuotas = () => {
     const navigate = useNavigate();
@@ -115,7 +115,7 @@ const FormuCuotas = () => {
     return (
         <div className="p-8 bg-white flex flex-col justify-center min-h-screen text-black">
             <div className="w-full max-w-screen-lg mx-auto">
-                <h1 className="text-4xl font-bold text-gray-700 mb-4">Registrar Cuotas</h1>
+                <h1 className="flex justify-between items-center mb-4">Registrar Cuotas</h1>
                 <form onSubmit={handleSubmit} className="grid grid-cols-1 gap-6">
                     <div>
                         <label className="block font-semibold mb-2">Cliente</label>

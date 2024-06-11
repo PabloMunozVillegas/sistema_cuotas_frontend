@@ -1,5 +1,5 @@
 import React from 'react';
-import FechayHora from '../../components/FechaHora';
+import FechayHora from '../../../components/FechaHora';
 
 const Inicio = () => {
     

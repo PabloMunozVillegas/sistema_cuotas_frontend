@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from 'react';
 import axios from 'axios';
 import CardProducto from './components/CardProducto';
-import FormuProducto from '../components/ModalFormularioPro';
-import ModalFormularioUpdateProd from '../components/ModalFormularioProductoUpdate';
-import { APIFunctions } from '../axiosInstance';
+import FormuProducto from '../../../components/ModalFormularioPro';
+import ModalFormularioUpdateProd from '../../../components/ModalFormularioProductoUpdate';
+import { APIFunctions } from '../../../axiosInstance';
 
 const ListaProducto = () => {
     const [productos, setProductos] = useState([]);
@@ -77,11 +77,8 @@ const ListaProducto = () => {
     const getProduct = async (productId) => {
         const token = localStorage.getItem('token');
         try {
-            const response = await axios.get(`http://localhost:3001/api/productos/${productId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            const enlace = `${productId}`;
+            const response = await APIFunctions.producto.urlIdUnico(enlace, token);
             setSelectedProduct(response.data);
         } catch (error) {
             console.error('Error al obtener el producto:', error.message);
@@ -119,11 +116,8 @@ const ListaProducto = () => {
     const handleDeleteProduct = async () => {
         const token = localStorage.getItem('token');
         try {
-            await axios.delete(`http://localhost:3001/api/productos/${currentProductId}`, {
-                headers: {
-                    Authorization: `Bearer ${token}`
-                }
-            });
+            const enlace = `${currentProductId}`;
+            await APIFunctions.producto.delete(enlace, token);
             handleCloseDeleteModal(); // Cierra el modal de confirmación
             fetchProductos(); // Actualiza la lista de productos después de la eliminación
         } catch (error) {

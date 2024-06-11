@@ -2,8 +2,8 @@ import React, { useEffect, useState } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import moment from 'moment';
 import 'moment/locale/es';
-import { APIFunctions } from '../axiosInstance';
-import { obtenerNombreMes } from '../utilsDate';
+import { APIFunctions } from '../../../../axiosInstance';
+import { obtenerNombreMes } from '../../../../utilsDate';
 
 moment.locale('es');
 

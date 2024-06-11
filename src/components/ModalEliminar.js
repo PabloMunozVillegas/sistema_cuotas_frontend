@@ -1,17 +1,17 @@
 import React from 'react';
 import { APIFunctions } from '../axiosInstance';
+import ToastInstance from '../toastInstance';
 
-const ModalEliminar = ({ clientId, onClose, updateClientData, token }) => {
+const ModalEliminar = ({ clientId, onClose, updateClientData }) => {
     const handleEliminarCliente = async () => {
         try {
             const token = localStorage.getItem('token');
-            const response = await APIFunctions.autenticacion.delete(clientId, token);
-            console.log("Cliente eliminado con éxito:", response);
-            onClose(true); 
-            updateClientData(); 
+            await APIFunctions.autenticacion.delete(clientId, token);
+            ToastInstance({ type: 'success', message: 'Cliente eliminado exitosamente' });
+            onClose(true);
+            updateClientData();
         } catch (error) {
-            console.error("Error al eliminar el cliente:", error);
-            alert('Hubo un error al eliminar el cliente. Por favor, inténtalo de nuevo.');
+            ToastInstance({ type: 'error', message: 'Error al eliminar el cliente' });
         }
     };
 
