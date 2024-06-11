@@ -1,6 +1,6 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
 import './App.css';
-import { Routes, Route } from 'react-router-dom';
+import { Routes, Route, useNavigate } from 'react-router-dom';
 import FormuCuotas from './InicioDeSesionParaTodos/PaginasAdministrador/VistaGralCuotas';
 import InicioSesion from './InicioDeSesionParaTodos/InicioSesion';
 import PaginaInicio from './InicioDeSesionParaTodos/PaginasAdministrador';
@@ -12,11 +12,24 @@ import VistaGeneral from './InicioDeSesionParaTodos/PaginasAdministrador/VistaGr
 import EsteNoEsElUsuario from './InicioSesionParaBaneados';
 
 function App() {
-  const token = localStorage.getItem('token');
+  const [token, setToken] = useState(localStorage.getItem('token'));
+
+  useEffect(() => {
+    const handleStorageChange = () => {
+      setToken(localStorage.getItem('token'));
+    };
+
+    window.addEventListener('storage', handleStorageChange);
+
+    return () => {
+      window.removeEventListener('storage', handleStorageChange);
+    };
+  }, []);
+
   return (
     <div>
       <Routes>
-        <Route path="/" element={<InicioSesion />} />
+        <Route path="/" element={<InicioSesion setToken={setToken} />} />
         {token ? (
           <Route path="/Inicio" element={<PaginaInicio/> }>
             <Route path="/Inicio" element={<Inicio />} />

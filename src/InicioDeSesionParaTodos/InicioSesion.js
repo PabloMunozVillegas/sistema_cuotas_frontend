@@ -4,20 +4,15 @@ import { APIFunctions } from '../axiosInstance';
 import InputField from './InputField'; 
 import ToastInstance from '../toastInstance';
 
-const InicioSesion = () => {
-    // Estado consolidado para los datos del formulario
+const InicioSesion = ({ setToken }) => {
     const [formData, setFormData] = useState({
         username: '',
         password: ''
     });
 
-    // Estado para el indicador de carga
     const [loading, setLoading] = useState(false);
-
-    // Hook de navegación de react-router-dom
     const navigate = useNavigate();
 
-    // Maneja el cambio en los inputs y actualiza el estado de los datos del formulario
     const handleChange = (event) => {
         const { name, value } = event.target;
         setFormData({
@@ -26,7 +21,6 @@ const InicioSesion = () => {
         });
     };
 
-    // Maneja la presentación del formulario
     const handleSubmit = async (event) => {
         event.preventDefault();
         setLoading(true);
@@ -36,6 +30,7 @@ const InicioSesion = () => {
             const token = response.token;
             if (token) {
                 localStorage.setItem('token', token);
+                setToken(token); // Actualizar el estado del token en App
                 if(response.data.rol === 'Administrador'){
                     navigate('/Inicio');
                 } else {
@@ -51,7 +46,6 @@ const InicioSesion = () => {
         }
     };
 
-    // Función para manejar errores de forma centralizada
     const handleError = (error) => {
         if (error.response) {
             ToastInstance({ type: 'error', message: error.response.data.message });
