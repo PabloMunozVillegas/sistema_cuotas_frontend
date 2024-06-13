@@ -12,8 +12,8 @@ const handleSubmitLogin = async (formData, setLoading, setToken, navigate) => {
             setToken(token);
             if(response.data.rol === 'Administrador'){
                 navigate('/Inicio');
-            } else {
-                ToastInstance({ type: 'success', message: 'Hola Usuario' });
+            } else if (response.data.rol === 'Cliente') {
+                navigate('/Inicio/Cliente');
             }
         } else {
             ToastInstance({ type: 'error', message: 'Problemas al iniciar sesión' });

@@ -1,7 +1,7 @@
 // useListaPago.js
 import { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { toast } from 'react-toastify';
+import ToastInstance from '../../../toastInstance';
 import { APIFunctions } from '../../../axiosInstance';
 
 const useListaPago = () => {
@@ -70,18 +70,17 @@ const useListaPago = () => {
             } else if (opcionPago === 'cuota' && cuotasSeleccionadas.length > 0) {
                 cuotasPagar = cuotasSeleccionadas.map(index => cuotaParaPago.pagosId[index]);
             } else {
-                console.log('No se seleccionaron cuotas');
+                ToastInstance({ type: 'error', message: 'No se seleccionaron cuotas' });
                 return;
             }
 
             const enlace = cuotaParaPago.cuotaSeleccionadaId;
             const data = cuotasPagar;
-            const response = await APIFunctions.pagos.create(data, enlace, token);
-            toast.success('Pago realizado con éxito!');
+            await APIFunctions.pagos.create(data, enlace, token);
+            ToastInstance({ type: 'success', message: 'Pago realizado con éxito!' });
             navigateToVistaDePago();
         } catch (error) {
-            console.error('Error al registrar el pago:', error);
-            toast.error('Error al registrar el pago');
+            ToastInstance({ type: 'error', message: 'Error al registrar el pago' });
         }
     };
 
@@ -94,9 +93,8 @@ const useListaPago = () => {
         handleOpcionPagoChange,
         handleCuotaSeleccionadaChange,
         handleModalConfirm,
-        setModalVisible  
+        setModalVisible
     };
-    
 };
 
 export default useListaPago;

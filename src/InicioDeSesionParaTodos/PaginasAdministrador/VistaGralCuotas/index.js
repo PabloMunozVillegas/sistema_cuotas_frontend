@@ -1,12 +1,24 @@
 import React from 'react';
-import  ToastInstance from '../../../toastInstance';
-import useCuotasForm from './handleCuotas'; // Importamos el hook creado
+import ToastInstance from '../../../toastInstance';
+import useCuotasForm from './handleCuotas';
+import Loader from '../../../components/Loader';
 
 const FormuCuotas = () => {
-    const { clientes, productos, formData, loading, error, modalOpen, handleChange, handleSubmit, handleModalConfirm, setModalOpen } = useCuotasForm();
+    const {
+        clientes,
+        productos,
+        formData,
+        loading,
+        error,
+        modalOpen,
+        handleChange,
+        handleSubmit,
+        handleModalConfirm,
+        setModalOpen
+    } = useCuotasForm();
 
     if (loading) {
-        return <div className="text-black">Cargando...</div>;
+        return <Loader />;
     }
 
     if (error) {
@@ -29,7 +41,7 @@ const FormuCuotas = () => {
                         >
                             <option value="">Seleccionar Cliente</option>
                             {clientes.map(cliente => (
-                                <option key={cliente._id} value={cliente._id}>{`${cliente.nombres} - ${cliente.cedulaIdentidad}`}</option> // Añadimos la cedula del cliente
+                                <option key={cliente._id} value={cliente._id}>{`${cliente.nombres} - ${cliente.cedulaIdentidad}`}</option>
                             ))}
                         </select>
                     </div>
@@ -110,3 +122,4 @@ const FormuCuotas = () => {
 };
 
 export default FormuCuotas;
+

@@ -10,6 +10,7 @@ import ListaProducto from './InicioDeSesionParaTodos/PaginasAdministrador/VistaG
 import ListaPago from './InicioDeSesionParaTodos/PaginasAdministrador/VistaGralPagos';
 import VistaGeneral from './InicioDeSesionParaTodos/PaginasAdministrador/VistaGralUsuario/VistaInfo';
 import EsteNoEsElUsuario from './InicioSesionParaBaneados';
+import ListaCuotas from './InicioDeSesionParaTodos/PaginasClientes';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -38,6 +39,7 @@ function App() {
             <Route path="/Inicio/VistaDePago" element={<ListaPago/>} />
             <Route path="/Inicio/VistaInfo" element={<VistaGeneral/>}/>
             <Route path="/Inicio/VistaDeCuotas" element={<FormuCuotas/>} />
+            <Route path="/Inicio/Cliente" element={<ListaCuotas/>} />
           </Route>
         ) : (
           <Route path="/*" element={<EsteNoEsElUsuario/>} />

@@ -1,129 +1,32 @@
-import React, { useState, useEffect } from 'react';
-import axios from 'axios';
+import React from 'react';
+import useListaProductoHandlers from './useHandlerProductos'; // Ensure this path is correct
 import CardProducto from './components/CardProducto';
 import FormuProducto from './components/ModalFormularioPro';
 import ModalFormularioUpdateProd from './components/ModalFormularioProductoUpdate';
-import { APIFunctions } from '../../../axiosInstance';
 
 const ListaProducto = () => {
-    const [productos, setProductos] = useState([]);
-    const [showModal, setShowModal] = useState(false);
-    const [showUpdateModal, setShowUpdateModal] = useState(false);
-    const [showDeleteModal, setShowDeleteModal] = useState(false); // Estado para mostrar el modal de confirmación
-    const [currentProductId, setCurrentProductId] = useState(null); 
-    const [currentPage, setCurrentPage] = useState(1);
-    const [totalPages, setTotalPages] = useState(1);
-    const [limit, setLimit] = useState(10);
-    const [searchQuery, setSearchQuery] = useState('');
-    const [selectedProduct, setSelectedProduct] = useState(null); 
-
-    useEffect(() => {
-        fetchProductos();
-    }, [currentPage, searchQuery]);
-
-    useEffect(() => {
-        const handleResize = () => {
-            const screenWidth = window.innerWidth;
-            if (screenWidth < 576) {
-                setLimit(2);
-            } else if (screenWidth >= 576 && screenWidth < 768) {
-                setLimit(4);
-            } else if (screenWidth >= 768 && screenWidth < 992) {
-                setLimit(6);
-            } else if (screenWidth >= 992 && screenWidth < 1200) {
-                setLimit(8);
-            } else {
-                setLimit(10);
-            }
-        };
-        handleResize();
-        window.addEventListener('resize', handleResize);
-        return () => window.removeEventListener('resize', handleResize);
-    }, []);
-
-    const fetchProductos = async () => {
-        try {
-           
-            const enlace = `pagina=${currentPage}&limite=${limit}&buscar=${searchQuery}`;
-            const token = localStorage.getItem('token');
-            const response = await APIFunctions.producto.listarUrl(enlace, token);
-            setProductos(response.productos);
-            setTotalPages(response.totalPaginas);
-        } catch (error) {
-            console.error('Error al obtener la lista de productos:', error.message);
-        }
-    };
-
-    const handleOpenModal = () => {
-        setShowModal(true);
-    };
-
-    const handleCloseModal = () => {
-        setShowModal(false);
-        fetchProductos();
-    };
-
-    const handleCloseUpdateModal = () => {
-        setShowUpdateModal(false);
-        fetchProductos();
-    };
-
-    const handleEditModal = (productId) => {
-        setCurrentProductId(productId);
-        setShowUpdateModal(true);
-        getProduct(productId);
-    };
-
-    const getProduct = async (productId) => {
-        const token = localStorage.getItem('token');
-        try {
-            const enlace = `${productId}`;
-            const response = await APIFunctions.producto.urlIdUnico(enlace, token);
-            setSelectedProduct(response.data);
-        } catch (error) {
-            console.error('Error al obtener el producto:', error.message);
-        }
-    };
-
-    const handleNextPage = () => {
-        if (currentPage < totalPages) {
-            setCurrentPage(currentPage + 1);
-        }
-    };
-
-    const handlePrevPage = () => {
-        if (currentPage > 1) {
-            setCurrentPage(currentPage - 1);
-        }
-    };
-
-    const handleSearchInputChange = (event) => {
-        setSearchQuery(event.target.value);
-    };
-
-    // Función para abrir el modal de confirmación
-    const handleOpenDeleteModal = (productId) => {
-        setCurrentProductId(productId);
-        setShowDeleteModal(true);
-    };
-
-    // Función para cerrar el modal de confirmación
-    const handleCloseDeleteModal = () => {
-        setShowDeleteModal(false);
-    };
-
-    // Función para eliminar el producto
-    const handleDeleteProduct = async () => {
-        const token = localStorage.getItem('token');
-        try {
-            const enlace = `${currentProductId}`;
-            await APIFunctions.producto.delete(enlace, token);
-            handleCloseDeleteModal(); // Cierra el modal de confirmación
-            fetchProductos(); // Actualiza la lista de productos después de la eliminación
-        } catch (error) {
-            console.error('Error al eliminar el producto:', error.message);
-        }
-    };
+    const {
+        productos,
+        showModal,
+        showUpdateModal,
+        showDeleteModal,
+        currentProductId,
+        currentPage,
+        totalPages,
+        limit,
+        searchQuery,
+        selectedProduct,
+        handleOpenModal,
+        handleCloseModal,
+        handleCloseUpdateModal,
+        handleEditModal,
+        handleNextPage,
+        handlePrevPage,
+        handleSearchInputChange,
+        handleOpenDeleteModal,
+        handleCloseDeleteModal,
+        handleDeleteProduct,
+    } = useListaProductoHandlers();
 
     return (
         <div className="p-8 bg-gray-100 min-h-screen flex flex-col">
@@ -141,7 +44,7 @@ const ListaProducto = () => {
                     placeholder="Buscar por nombre o descripción..."
                     className="p-2 border border-gray-300 rounded-l w-full focus:outline-none"
                 />
-                <button onClick={fetchProductos} className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-r focus:outline-none">
+                <button className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-r focus:outline-none">
                     Buscar
                 </button>
             </div>
@@ -153,7 +56,7 @@ const ListaProducto = () => {
                         descripcion={producto.descripcion}
                         precio={producto.precio}
                         onEdit={() => handleEditModal(producto._id)}
-                        onDelete={() => handleOpenDeleteModal(producto._id)} // Llama a la función para abrir el modal de confirmación
+                        onDelete={() => handleOpenDeleteModal(producto._id)}
                     />
                 ))}
             </div>
@@ -166,7 +69,6 @@ const ListaProducto = () => {
                     Siguiente
                 </button>
             </div>
-            {/* Modal de confirmación para eliminar el producto */}
             {showDeleteModal && (
                 <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
                     <div className="bg-white p-6 rounded-lg">
@@ -182,7 +84,6 @@ const ListaProducto = () => {
                     </div>
                 </div>
             )}
-            {/* Otros modales */}
             {showModal && (
                 <div className="fixed top-0 left-0 w-full h-full bg-black bg-opacity-50 flex justify-center items-center">
                     <FormuProducto onClose={handleCloseModal} />

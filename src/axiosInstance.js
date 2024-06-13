@@ -4,26 +4,14 @@ const API_BASE_URL = 'https://sistema-cuotas.onrender.com';
 
 const makeRequest = async (method, url, data = null, token = null) => {
   try {
-    let axiosMethod;
+    const config = {
+      method,
+      url,
+      headers: { Authorization: `Bearer ${token}` },
+      data,
+    };
 
-    switch (method) {
-      case 'GET':
-        axiosMethod = axios.get(url, { headers: { Authorization: `Bearer ${token}` } });
-        break;
-      case 'POST':
-        axiosMethod = axios.post(url, data, { headers: { Authorization: `Bearer ${token}` } });
-        break;
-      case 'PATCH':
-        axiosMethod = axios.patch(url, data, { headers: { Authorization: `Bearer ${token}` } });
-        break;
-      case 'DELETE':
-        axiosMethod = axios.delete(url, { headers: { Authorization: `Bearer ${token}` } });
-        break;
-      default:
-        throw new Error(`HTTP method ${method} not supported`);
-    }
-
-    const response = await axiosMethod;
+    const response = await axios(config);
     if (!response) {
       throw new Error('No se recibió respuesta del servidor');
     }
@@ -33,9 +21,29 @@ const makeRequest = async (method, url, data = null, token = null) => {
   }
 };
 
+const pollRequest = async (method, url, data = null, token = null, interval = 1000, callback) => {
+  try {
+    const config = {
+      method,
+      url,
+      headers: { Authorization: `Bearer ${token}` },
+      data,
+    };
+
+    const response = await axios(config);
+    if (response) {
+      callback(response.data);
+    }
+  } catch (error) {
+    console.error('Polling error:', error);
+  } finally {
+    setTimeout(() => pollRequest(method, url, data, token, interval, callback), interval);
+  }
+};
+
 const createAPIFunction = (props) => {
   const { method, url } = props;
-  return async (data = null, enlace = '', token = null) => {
+  return async (data = null, enlace = '', token = null, poll = false, interval = 5000, callback) => {
     let completeUrl = `${API_BASE_URL}${url}`;
     if (enlace) {
       completeUrl += `/${enlace}`;
@@ -44,16 +52,16 @@ const createAPIFunction = (props) => {
       const payload = {
         idPago: data
       };
-      return await makeRequest(method, completeUrl, url === '/api/pagos/create' ? payload : data, token);
+      if (poll) {
+        pollRequest(method, completeUrl, url === '/api/pagos/create' ? payload : data, token, interval, callback);
+      } else {
+        return await makeRequest(method, completeUrl, url === '/api/pagos/create' ? payload : data, token);
+      }
     } catch (error) {
       throw error;
     }
   };
 };
-
-
-
-
 
 const loginAPIFunction = (props) => {
   const { method, url } = props;
@@ -69,13 +77,17 @@ const loginAPIFunction = (props) => {
 
 const searchAPIFunction = (props) => {
   const { method, url } = props;
-  return async (enlace = '', token) => {
+  return async (enlace = '', token, poll = false, interval = 5000, callback) => {
     let completeUrl = `${API_BASE_URL}${url}`;
     if (enlace) {
       completeUrl += `?${enlace}`;
     }
     try {
-      return await makeRequest(method, completeUrl, null, token);
+      if (poll) {
+        pollRequest(method, completeUrl, null, token, interval, callback);
+      } else {
+        return await makeRequest(method, completeUrl, null, token);
+      }
     } catch (error) {
       throw error;
     }
@@ -84,13 +96,17 @@ const searchAPIFunction = (props) => {
 
 const searchOtherAPIFunction = (props) => {
   const { method, url } = props;
-  return async (enlace = '', token) => {
+  return async (enlace = '', token, poll = false, interval = 5000, callback) => {
     let completeUrl = `${API_BASE_URL}${url}`;
     if (enlace) {
       completeUrl += `/${enlace}`;
     }
     try {
-      return await makeRequest(method, completeUrl, null, token);
+      if (poll) {
+        pollRequest(method, completeUrl, null, token, interval, callback);
+      } else {
+        return await makeRequest(method, completeUrl, null, token);
+      }
     } catch (error) {
       throw error;
     }
@@ -99,13 +115,17 @@ const searchOtherAPIFunction = (props) => {
 
 const deleteAPIFunction = (props) => {
   const { method, url } = props;
-  return async (enlace = '', token) => {
+  return async (enlace = '', token, poll = false, interval = 5000, callback) => {
     let completeUrl = `${API_BASE_URL}${url}`;
     if (enlace) {
       completeUrl += `/${enlace}`;
     }
     try {
-      return await makeRequest(method, completeUrl, null, token);
+      if (poll) {
+        pollRequest(method, completeUrl, null, token, interval, callback);
+      } else {
+        return await makeRequest(method, completeUrl, null, token);
+      }
     } catch (error) {
       throw error;
     }
@@ -114,13 +134,17 @@ const deleteAPIFunction = (props) => {
 
 const actualizarAPIFunction = (props) => {
   const { method, url } = props;
-  return async (data = null, enlace = '', token=null) => {
+  return async (data = null, enlace = '', token = null, poll = false, interval = 5000, callback) => {
     let completeUrl = `${API_BASE_URL}${url}`;
     if (enlace) {
       completeUrl += `/${enlace}`;
     }
     try {
-      return await makeRequest(method, completeUrl, data, token);
+      if (poll) {
+        pollRequest(method, completeUrl, data, token, interval, callback);
+      } else {
+        return await makeRequest(method, completeUrl, data, token);
+      }
     } catch (error) {
       throw error;
     }

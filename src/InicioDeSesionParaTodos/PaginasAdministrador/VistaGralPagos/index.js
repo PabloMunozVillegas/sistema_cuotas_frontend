@@ -1,6 +1,6 @@
 // ListaPago.js
 import React from 'react';
-import { toast, ToastContainer } from 'react-toastify';
+import ToastInstance from '../../../toastInstance';
 import { useNavigate } from 'react-router-dom';
 import useListaPago from './hanlderPagos';
 
@@ -14,9 +14,9 @@ const ListaPago = () => {
         handleOpcionPagoChange,
         handleCuotaSeleccionadaChange,
         handleModalConfirm,
-        setModalVisible  // Asegúrate de incluir setModalVisible en la destructuración
+        setModalVisible
     } = useListaPago();
-    
+
     const navigate = useNavigate();
 
     const navigateToVistaDePago = () => {
@@ -75,7 +75,7 @@ const ListaPago = () => {
                     </div>
                 </div>
             )}
-            <ToastContainer />
+            <ToastInstance />
         </div>
     );
 };

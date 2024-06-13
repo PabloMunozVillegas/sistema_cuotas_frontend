@@ -1,41 +1,9 @@
-import React, { useState } from 'react';
-import { APIFunctions } from '../../../../axiosInstance';
-import ToastInstance from '../../../../toastInstance';
+// FormuProducto.js
+import React from 'react';
+import useFormHandlers from './handlerProd';
+
 const FormuProducto = ({ onClose }) => {
-    const [formData, setFormData] = useState({
-        nombreProducto: '',
-        precio: '',
-        descripcion: ''
-        
-    });
-
-    const handleChange = (event) => {
-        const { name, value } = event.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const token = localStorage.getItem('token');
-        
-        const requestBody = {
-            nombreProducto: formData.nombreProducto,
-            precio: parseFloat(formData.precio),
-            descripcion: formData.descripcion
-        };
-        
-        try {
-            await APIFunctions.producto.create(requestBody, null, token);
-            ToastInstance({ type: 'success', message: 'Producto registrado exitosamente' });
-            onClose();
-        } catch (error) {
-            ToastInstance({ type: 'error', message: 'Error al registrar producto. Inténtelo de nuevo más tarde.' });
-        }
-    };
-    
+    const { formData, handleChange, handleSubmit } = useFormHandlers({ onClose });
 
     return (
         <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-30">
@@ -65,7 +33,6 @@ const FormuProducto = ({ onClose }) => {
                     </div>
                 </form>
             </div>
-            <ToastInstance/>
         </div>
     );
 };

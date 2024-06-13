@@ -1,84 +1,10 @@
-import React, { useState, useEffect } from 'react';
-import { APIFunctions } from '../../../../axiosInstance';
-import { toast , ToastContainer } from 'react-toastify';
+// ModalFormularioUpdateProd.js
+import React from 'react';
+import ToastInstance from '../../../../toastInstance';
+import useModalFormHandlers from './handlerProdUpd';
 
 const ModalFormularioUpdateProd = ({ productId, onClose }) => {
-    const [formData, setFormData] = useState({
-        nombreProducto: '',
-        precio: '',
-        descripcion: ''
-    });
-
-    useEffect(() => {
-        fetchProductData();
-    }, [productId]); // Se ejecuta cada vez que la productId cambia
-
-    const fetchProductData = async () => {
-        try {
-            
-            const token = localStorage.getItem('token');
-            const enlace = `${productId}`;
-            const response = await APIFunctions.producto.urlIdUnico(enlace, token);
-            const productData = response;
-            setFormData({
-                nombreProducto: productData.nombreProducto,
-                precio: productData.precio.toString(),
-                descripcion: productData.descripcion
-            });
-        } catch (error) {
-            console.error('Error al obtener los datos del producto:', error);
-        }
-    };
-
-    const handleChange = (event) => {
-        const { name, value } = event.target;
-        setFormData({
-            ...formData,
-            [name]: value,
-        });
-    };
-
-    const handleSubmit = async (event) => {
-        event.preventDefault();
-        const token = localStorage.getItem('token');
-        
-        // Ensure formData contains the correct properties
-        const requestBody = {
-            nombreProducto: formData.nombreProducto,
-            precio: parseFloat(formData.precio),
-            descripcion: formData.descripcion
-        };
-    
-        try {
-            const enlace = `${productId}`;
-            
-            // Logging to debug
-            console.log('Request Body:', requestBody);
-            console.log('Enlace:', enlace);
-            console.log('Token:', token);
-    
-            // Ensure APIFunctions.producto.actualizar is a function
-            if (typeof APIFunctions.producto.actualizar !== 'function') {
-                throw new Error('APIFunctions.producto.actualizar is not a function');
-            }
-    
-            // Await the API call and log the response
-            const response = await APIFunctions.producto.actualizar(requestBody, enlace, token);
-            console.log('Producto actualizado:', response);
-    
-            // Close the form
-            onClose();
-        } catch (error) {
-            // Improved error handling
-            console.error('Error al actualizar el producto:', error.message || error);
-    
-            // Optional: Show user-friendly error message (if using a notification library like react-toastify)
-            toast.error('Error al actualizar el producto. Inténtelo de nuevo más tarde.', {
-                position: "top-right",
-                autoClose: 3000,
-            });
-        }
-    };
+    const { formData, handleChange, handleSubmit } = useModalFormHandlers({ productId, onClose });
 
     return (
         <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-30">
@@ -108,7 +34,7 @@ const ModalFormularioUpdateProd = ({ productId, onClose }) => {
                     </div>
                 </form>
             </div>
-            <ToastContainer />
+            <ToastInstance/>
         </div>
     );
 };

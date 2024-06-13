@@ -34,6 +34,7 @@ const ModalEliminar = ({ clientId, onClose, updateClientData }) => {
                     </button>
                 </div>
             </div>
+            <ToastInstance />
         </div>
     );
 };
