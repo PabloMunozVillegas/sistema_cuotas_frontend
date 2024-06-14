@@ -1,10 +1,11 @@
-// PaginaInicio.js
 import React, { useState } from 'react';
-import { Outlet } from 'react-router-dom';
+import { Outlet, useLocation } from 'react-router-dom';
 import Sidebar from './components/Sidebar';
 
 const PaginaInicio = () => {
     const [isSidebarOpen, setSidebarOpen] = useState(true);
+    const location = useLocation();
+    const showSidebar = !location.pathname.includes('/Pendientes'); // Verifica si la ruta incluye 'Pendientes'
 
     const toggleSidebar = () => {
         setSidebarOpen(!isSidebarOpen);
@@ -12,11 +13,11 @@ const PaginaInicio = () => {
 
     return (
         <div className="flex">
-            <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />
-            <div className={`flex-1 ${isSidebarOpen ? 'ml-64' : ''} max-w-full overflow-x-hidden transition-all duration-300 ease-in-out`}>
+            {showSidebar && <Sidebar isOpen={isSidebarOpen} toggleSidebar={toggleSidebar} />}
+            <div className={`flex-1 ${isSidebarOpen && showSidebar ? 'ml-64' : ''} max-w-full overflow-x-hidden transition-all duration-300 ease-in-out`}>
                 <Outlet />
             </div>
-            {!isSidebarOpen && (
+            {!isSidebarOpen && showSidebar && (
                 <button
                     onClick={toggleSidebar}
                     className="fixed top-4 left-4 z-50 p-2 bg-gray-800 text-white rounded-md focus:outline-none"

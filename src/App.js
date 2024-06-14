@@ -1,6 +1,6 @@
 import React, { useEffect, useState } from 'react';
 import './App.css';
-import { Routes, Route, useNavigate } from 'react-router-dom';
+import { Routes, Route } from 'react-router-dom';
 import FormuCuotas from './InicioDeSesionParaTodos/PaginasAdministrador/VistaGralCuotas';
 import InicioSesion from './InicioDeSesionParaTodos/InicioSesion';
 import PaginaInicio from './InicioDeSesionParaTodos/PaginasAdministrador';
@@ -11,6 +11,7 @@ import ListaPago from './InicioDeSesionParaTodos/PaginasAdministrador/VistaGralP
 import VistaGeneral from './InicioDeSesionParaTodos/PaginasAdministrador/VistaGralUsuario/VistaInfo';
 import EsteNoEsElUsuario from './InicioSesionParaBaneados';
 import ListaCuotas from './InicioDeSesionParaTodos/PaginasClientes';
+import VistaMasDetalle from './InicioDeSesionParaTodos/PaginasClientes/VistaMasDetalle';
 
 function App() {
   const [token, setToken] = useState(localStorage.getItem('token'));
@@ -32,17 +33,20 @@ function App() {
       <Routes>
         <Route path="/" element={<InicioSesion setToken={setToken} />} />
         {token ? (
-          <Route path="/Inicio" element={<PaginaInicio/> }>
-            <Route path="/Inicio" element={<Inicio />} />
-            <Route path="/Inicio/VistaDeClientes" element={<ListaClientes/>} />
-            <Route path="/Inicio/VistaDeProductos" element={<ListaProducto/>} />
-            <Route path="/Inicio/VistaDePago" element={<ListaPago/>} />
-            <Route path="/Inicio/VistaInfo" element={<VistaGeneral/>}/>
-            <Route path="/Inicio/VistaDeCuotas" element={<FormuCuotas/>} />
-            <Route path="/Inicio/Cliente" element={<ListaCuotas/>} />
-          </Route>
+          <>
+            <Route path="/Inicio" element={<PaginaInicio />}>
+              <Route path="/Inicio" element={<Inicio />} />
+              <Route path="VistaDeClientes" element={<ListaClientes />} />
+              <Route path="VistaDeProductos" element={<ListaProducto />} />
+              <Route path="VistaDePago" element={<ListaPago />} />
+              <Route path="VistaInfo" element={<VistaGeneral />} />
+              <Route path="VistaDeCuotas" element={<FormuCuotas />} />
+            </Route>
+            <Route path="/Pendientes" element={<ListaCuotas />} />
+            <Route path="/Pendientes/MasDetalle/:cuotaId" element={<VistaMasDetalle />} />
+          </>
         ) : (
-          <Route path="/*" element={<EsteNoEsElUsuario/>} />
+          <Route path="/*" element={<EsteNoEsElUsuario />} />
         )}
       </Routes>
     </div>

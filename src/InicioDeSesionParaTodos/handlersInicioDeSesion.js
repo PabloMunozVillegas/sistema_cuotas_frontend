@@ -3,23 +3,24 @@ import ToastInstance from '../toastInstance';
 
 const handleSubmitLogin = async (formData, setLoading, setToken, navigate) => {
     setLoading(true);
-  
+
     try {
         const response = await APIFunctions.autenticacion.login(formData);
         const token = response.token;
         if (token) {
             localStorage.setItem('token', token);
             setToken(token);
-            if(response.data.rol === 'Administrador'){
+            if (response.data.rol === 'Administrador') {
                 navigate('/Inicio');
             } else if (response.data.rol === 'Cliente') {
-                navigate('/Inicio/Cliente');
+                navigate('/Pendientes');
+                localStorage.setItem('idCliente', response.data.id);
             }
         } else {
             ToastInstance({ type: 'error', message: 'Problemas al iniciar sesión' });
         }
     } catch (error) {
-        handleErrorLogin(error); 
+        handleErrorLogin(error);
     } finally {
         setLoading(false);
     }
