@@ -15,7 +15,6 @@ const Sidebar = ({ isOpen, toggleSidebar }) => {
                 )}
             </div>
             <div className="flex flex-col">
-                <h2 className="text-lg font-bold mb-4">Sidebar</h2>
                 <ul>
                     <li className="mb-2">
                         <a href="/Inicio/VistaDeClientes" className="text-gray-400 hover:text-white transition-colors duration-200">Vista de Clientes</a>

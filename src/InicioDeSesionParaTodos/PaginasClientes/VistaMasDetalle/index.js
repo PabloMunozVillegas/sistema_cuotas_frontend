@@ -1,55 +1,14 @@
-import React, { useState, useEffect } from 'react';
-import { APIFunctions } from '../../../axiosInstance';
-import { useParams, useNavigate } from 'react-router-dom';
-import ModalPago from './components/ModalPago'; // Importar el componente ModalPago (implementación pendiente)
+import React, { useState } from 'react';
+import { useLocation, useNavigate } from 'react-router-dom';
+import ModalPago from './components/ModalPago';
 
 const VistaMasDetalle = () => {
-    const { cuotaId } = useParams();
-    const [detalleCuota, setDetalleCuota] = useState(null);
-    const [pagos, setPagos] = useState([]);
+    const location = useLocation();
+    const { detalleCuota, pagos, cliente } = location.state;
     const [showModal, setShowModal] = useState(false);
     const [selectedCuotas, setSelectedCuotas] = useState([]);
+    const [montoTotalPagar, setMontoTotalPagar] = useState(0);
     const navigate = useNavigate();
-
-    useEffect(() => {
-        const fetchDetalleCuota = async () => {
-            const token = localStorage.getItem('token');
-            try {
-                const responseCuota = await APIFunctions.pagos.urlIdUnico(cuotaId, token);
-                console.log(responseCuota);
-                setDetalleCuota(responseCuota);
-                setPagos(responseCuota.pagos);
-            } catch (error) {
-                console.error('Error fetching payment data:', error);
-            }
-        };
-
-        fetchDetalleCuota();
-    }, [cuotaId]);
-
-    useEffect(() => {
-        const handleSwipeBack = (event) => {
-            if (event.touches && event.changedTouches) {
-                const touchStartX = event.touches[0]?.clientX;
-                const touchEndX = event.changedTouches[0]?.clientX;
-                const touchStartY = event.touches[0]?.clientY;
-                const touchEndY = event.changedTouches[0]?.clientY;
-
-                // Detectar un gesto de deslizamiento horizontal hacia la izquierda
-                if (touchStartX && touchEndX && touchStartX - touchEndX > 50 && Math.abs(touchStartY - touchEndY) < 50) {
-                    navigate(-1); // Navegar hacia atrás si el gesto de deslizamiento es suficiente
-                }
-            }
-        };
-
-        document.addEventListener('touchstart', handleSwipeBack);
-        document.addEventListener('touchend', handleSwipeBack);
-
-        return () => {
-            document.removeEventListener('touchstart', handleSwipeBack);
-            document.removeEventListener('touchend', handleSwipeBack);
-        };
-    }, [navigate]);
 
     const handleOpenModal = () => {
         setShowModal(true);
@@ -72,47 +31,53 @@ const VistaMasDetalle = () => {
     const handlePagar = async () => {
         try {
             const token = localStorage.getItem('token');
-            // Simplemente acumular el monto total a pagar de las cuotas seleccionadas
-            const montoTotalPagar = selectedCuotas.reduce((total, index) => {
-                return total + detalleCuota.pagos[index].totalPagado;
+            const montoTotal = selectedCuotas.reduce((total, index) => {
+                return total + pagos.pagos[index].totalPagado; // Asegúrate de acceder correctamente a pagos.pagos[index]
             }, 0);
 
-            // Aquí deberías implementar la lógica para crear un nuevo pago unificado
-            // APIFunctions.pagos.crearPago(cuotaId, token, { /* Datos del pago */ });
+            setMontoTotalPagar(montoTotal);
 
-            // Ejemplo: Crear un nuevo objeto de pago consolidado
             const nuevoPago = {
-                fechaPago: new Date().toISOString(), // Fecha actual (ejemplo)
-                totalPagado: montoTotalPagar,
-                estadoPago: 'Pendiente' // Estado inicial (ejemplo)
+                fechaPago: new Date().toISOString(),
+                totalPagado: montoTotal,
+                estadoPago: 'Pendiente'
             };
 
-            // Actualizar el estado de pagos con el nuevo pago consolidado
-            setPagos([...pagos, nuevoPago]);
+            // Lógica para realizar el pago...
 
-            // Redirigir a la página de detalle de pago con los datos necesarios
             navigate('/historial-de-pagos/detalle-pago', {
                 state: {
                     usuario: 'Usuario Ejemplo',
                     producto: detalleCuota.producto,
-                    monto: montoTotalPagar.toFixed(2),
-                    cuotasSeleccionadas: selectedCuotas
+                    monto: montoTotal.toFixed(2),
+                    cuotasSeleccionadas: selectedCuotas,
+                    cliente: cliente
                 }
             });
         } catch (error) {
             console.error('Error al realizar el pago:', error);
-            // Manejar el error según sea necesario
         }
     };
 
     if (!detalleCuota) return <div>Cargando...</div>;
 
+    const totalCuotas = pagos.pagos.reduce((total, pago) => total + pago.totalPagado, 0).toFixed(2);
+
     return (
         <div className="p-8 bg-gray-100 min-h-screen">
             <div className="bg-white p-6 rounded-lg shadow-lg">
-                <h2 className="text-2xl font-bold mb-4">{detalleCuota.producto}</h2>
+                <h2 className="text-2xl font-bold mb-4">{detalleCuota.nombreProducto}</h2>
 
-                {/* Tabla de Cuotas */}
+                {cliente && (
+                    <div>
+                        <p><strong>Cliente:</strong> {cliente.nombres} {cliente.apellidos}</p>
+                        <p><strong>Cédula de Identidad:</strong> {cliente.cedulaIdentidad}</p>
+                    </div>
+                )}
+
+                <h3 className="text-xl font-bold mt-6 mb-2">Monto Total: {detalleCuota.montoTotal} Bs</h3>
+                <h4 className="text-lg font-bold mt-4 mb-2">Monto del Pago: {totalCuotas} Bs</h4>
+
                 <h3 className="text-xl font-bold mt-6 mb-2">Tabla de Cuotas</h3>
                 <div className="overflow-x-auto">
                     <table className="min-w-full bg-white border border-gray-200">
@@ -125,17 +90,21 @@ const VistaMasDetalle = () => {
                             </tr>
                         </thead>
                         <tbody>
-                            {detalleCuota.pagos.map((pago, index) => (
+                            {pagos.pagos.map((pago, index) => (
                                 <tr key={index} className="border-b border-gray-200">
                                     <td className="py-2 px-4">
-                                        <input
-                                            type="checkbox"
-                                            checked={selectedCuotas.includes(index)}
-                                            onChange={() => handleCheckboxChange(index)}
-                                        />
+                                        {pago.estadoPago === 'Pendiente' && (
+                                            <input
+                                                type="checkbox"
+                                                checked={selectedCuotas.includes(index)}
+                                                onChange={() => handleCheckboxChange(index)}
+                                            />
+                                        )}
                                     </td>
-                                    <td className="py-2 px-4">{new Date(pago.fechaPago).toLocaleDateString()}</td>
-                                    <td className="py-2 px-4">{pago.totalPagado.toFixed(2)} Bs</td>
+                                    <td className="py-2 px-4">
+                                        {pago.fechaPago ? new Date(pago.fechaPago).toLocaleDateString() : 'Sin fecha'}
+                                    </td>
+                                    <td className="py-2 px-4">{pago.totalPagado} Bs</td>
                                     <td className="py-2 px-4">{pago.estadoPago}</td>
                                 </tr>
                             ))}
@@ -143,23 +112,18 @@ const VistaMasDetalle = () => {
                     </table>
                 </div>
 
-                {/* Resumen */}
-                <h3 className="text-xl font-bold mt-6 mb-2">Resumen</h3>
-                <p><strong>Total a Pagar:</strong> {selectedCuotas.length > 0 ? selectedCuotas.reduce((total, index) => total + detalleCuota.pagos[index].totalPagado, 0).toFixed(2) : '0.00'} Bs</p>
-
-                {/* Botón Pagar */}
                 <button
-                    onClick={handleOpenModal}
-                    className="bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-300 mt-4"
+                    className="mt-4 bg-blue-500 text-white px-4 py-2 rounded-lg shadow hover:bg-blue-700 transition duration-300"
+                    onClick={handlePagar}
                 >
-                    Pagar
+                    Pagar Seleccionados
                 </button>
 
-                {/* Modal de Pago */}
                 {showModal && (
                     <ModalPago
-                        onClose={handleCloseModal}
-                        montoRestante={selectedCuotas.length > 0 ? selectedCuotas.reduce((total, index) => total + detalleCuota.pagos[index].totalPagado, 0).toFixed(2) : '0.00'}
+                        closeModal={handleCloseModal}
+                        totalPagar={montoTotalPagar}
+                        cuotasSeleccionadas={selectedCuotas}
                     />
                 )}
             </div>

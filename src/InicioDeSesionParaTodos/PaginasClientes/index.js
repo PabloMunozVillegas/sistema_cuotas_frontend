@@ -8,53 +8,65 @@ const ListaCuotas = () => {
     const [cliente, setCliente] = useState(null);
     const navigate = useNavigate();
 
-    const fetchCuotasPorCliente = async () => {
-        const id = localStorage.getItem('idCliente');
-        const token = localStorage.getItem('token');
-        const enlace = `${id}`;
-        
-        try {
-            const response = await APIFunctions.autenticacion.urlIdUnico(enlace, token);
-            const perfil = {
-                nombres: response.nombres,
-                apellidos: response.apellidos,
-                cedulaIdentidad: response.cedulaIdentidad,
-                username: response.username,
-                telefono: response.telefono,
-                email: response.email,
-                direccion: response.direccion,
-                genero: response.genero,
-            };
-            setCliente(perfil);
-
-            const responseDos = await APIFunctions.cuotas.urlIdUnico(enlace, token);
-            const cuotasConProductos = responseDos.cuotas.map(cuota => ({
-                ...cuota,
-                producto: cuota.producto.map(producto => producto)
-            }));
-            setCuotas(cuotasConProductos);
-        } catch (error) {
-            console.error('Error fetching data:', error);
-        }
-    };
-
     useEffect(() => {
-        fetchCuotasPorCliente();
+        const fetchCuotasYCliente = async () => {
+            try {
+                const idCliente = localStorage.getItem('idCliente');
+                const token = localStorage.getItem('token');
+
+                // Obtener datos del cliente
+                const responseCliente = await APIFunctions.autenticacion.urlIdUnico(idCliente, token);
+                const perfilCliente = {
+                    nombres: responseCliente.nombres,
+                    apellidos: responseCliente.apellidos,
+                    cedulaIdentidad: responseCliente.cedulaIdentidad,
+                    username: responseCliente.username,
+                    telefono: responseCliente.telefono,
+                    email: responseCliente.email,
+                    direccion: responseCliente.direccion,
+                    genero: responseCliente.genero,
+                };
+                setCliente(perfilCliente);
+
+                // Obtener cuotas del cliente con sus productos y pagos
+                const responseCuotas = await APIFunctions.cuotas.urlIdUnico(idCliente, token);
+                const cuotasConProductos = await Promise.all(responseCuotas.cuotas.map(async cuota => {
+                    const responsePagos = await APIFunctions.pagos.urlIdUnico(cuota._id, token);
+                    return {
+                        ...cuota,
+                        producto: cuota.producto,
+                        pagos: responsePagos // Incluir los pagos en la estructura de cuota
+                    };
+                }));
+                setCuotas(cuotasConProductos);
+            } catch (error) {
+                console.error('Error fetching data:', error);
+            }
+        };
+
+        fetchCuotasYCliente();
     }, []);
 
-    const handleMoreInfo = (cuotaId) => {
-        navigate(`/Pendientes/MasDetalle/${cuotaId}`);
-    };
-
     return (
-        <div>
-            {cuotas.map(cuota => (
-                <CardCuota 
-                    key={cuota._id}
-                    cuota={cuota}
-                    onMoreInfo={handleMoreInfo}
-                />
-            ))}
+        <div className="p-8 bg-gray-100 min-h-screen">
+            <div className="container mx-auto">
+                <h1 className="text-3xl font-bold mb-6">Lista de Cuotas</h1>
+                {cliente && (
+                    <div>
+                        <p><strong>Cliente:</strong> {cliente.nombres} {cliente.apellidos}</p>
+                        <p><strong>Cédula de Identidad:</strong> {cliente.cedulaIdentidad}</p>
+                        <p><strong>Teléfono:</strong> {cliente.telefono}</p>
+                    </div>
+                )}
+                {cuotas.map(cuota => (
+                    <CardCuota 
+                        key={cuota._id}
+                        cuota={cuota}
+                        pagos={cuota.pagos} // Pasar los pagos directamente
+                        navigate={navigate}
+                    />
+                ))}
+            </div>
         </div>
     );
 };

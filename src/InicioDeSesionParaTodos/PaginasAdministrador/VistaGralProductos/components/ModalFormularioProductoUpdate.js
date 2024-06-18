@@ -1,10 +1,10 @@
-// ModalFormularioUpdateProd.js
-import React from 'react';
+import React, { useState } from 'react';
 import ToastInstance from '../../../../toastInstance';
 import useModalFormHandlers from './handlerProdUpd';
 
 const ModalFormularioUpdateProd = ({ productId, onClose }) => {
     const { formData, handleChange, handleSubmit } = useModalFormHandlers({ productId, onClose });
+    const [isDescriptionExpanded, setIsDescriptionExpanded] = useState(false);
 
     return (
         <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-30">
@@ -19,14 +19,33 @@ const ModalFormularioUpdateProd = ({ productId, onClose }) => {
                     {Object.keys(formData).map((key) => (
                         <div key={key} className="flex flex-col">
                             <label className="mb-1 capitalize">{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</label>
-                            <input
-                                type="text"
-                                name={key}
-                                value={formData[key]}
-                                onChange={handleChange}
-                                className="p-2 border border-gray-300 rounded w-full"
-                                required
-                            />
+                            {key === 'descripcion' ? (
+
+                                <textarea
+                                    name={key}
+                                    value={formData[key]}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded w-full"
+                                    required
+                                    style={{
+                                        resize: 'none',
+                                        overflowY: 'auto',
+                                        minHeight: isDescriptionExpanded ? '200px' : '40px',
+                                        maxHeight: isDescriptionExpanded ? '400px' : '200px',
+                                    }}
+                                    onClick={() => setIsDescriptionExpanded(true)}
+                                />
+                                
+                            ) : (
+                                <input
+                                    type="text"
+                                    name={key}
+                                    value={formData[key]}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded w-full"
+                                    required
+                                />
+                            )}
                         </div>
                     ))}
                     <div className="flex justify-end col-span-2">

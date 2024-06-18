@@ -18,14 +18,29 @@ const FormuProducto = ({ onClose }) => {
                     {Object.keys(formData).map((key) => (
                         <div key={key} className="flex flex-col">
                             <label className="mb-1 capitalize">{key.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</label>
-                            <input
-                                type="text"
-                                name={key}
-                                value={formData[key]}
-                                onChange={handleChange}
-                                className="p-2 border border-gray-300 rounded w-full"
-                                required
-                            />
+                            {key === 'descripcion' ? (
+                                <textarea
+                                    name={key}
+                                    value={formData[key]}
+                                    onChange={(e) => {
+                                        handleChange(e);
+                                        e.target.style.height = 'auto';
+                                        e.target.style.height = `${e.target.scrollHeight}px`;
+                                    }}
+                                    className="p-2 border border-gray-300 rounded w-full"
+                                    required
+                                    style={{ resize: 'none', minHeight: '40px', maxHeight: '200px', overflowY: 'auto' }}
+                                />
+                            ) : (
+                                <input
+                                    type="text"
+                                    name={key}
+                                    value={formData[key]}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded w-full"
+                                    required
+                                />
+                            )}
                         </div>
                     ))}
                     <div className="flex justify-end col-span-2">

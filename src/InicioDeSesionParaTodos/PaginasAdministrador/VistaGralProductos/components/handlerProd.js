@@ -12,6 +12,18 @@ const useFormHandlers = ({ onClose }) => {
 
     const handleChange = (event) => {
         const { name, value } = event.target;
+
+        if (name === 'precio') {
+            // Permitir solo números y punto decimal
+            if (!/^\d*\.?\d*$/.test(value)) {
+                return;
+            }
+        }
+
+         // Ajustar altura automáticamente
+         event.target.style.height = 'auto';
+         event.target.style.height = event.target.scrollHeight + 'px';
+         
         setFormData({
             ...formData,
             [name]: value,
