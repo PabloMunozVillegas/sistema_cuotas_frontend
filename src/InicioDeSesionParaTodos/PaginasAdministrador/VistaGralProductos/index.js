@@ -1,5 +1,5 @@
 import React from 'react';
-import useListaProductoHandlers from './useHandlerProductos'; // Ensure this path is correct
+import useListaProductoHandlers from './useHandlerProductos';
 import CardProducto from './components/CardProducto';
 import FormuProducto from './components/ModalFormularioPro';
 import ModalFormularioUpdateProd from './components/ModalFormularioProductoUpdate';
@@ -15,7 +15,6 @@ const ListaProducto = () => {
         totalPages,
         limit,
         searchQuery,
-        selectedProduct,
         handleOpenModal,
         handleCloseModal,
         handleCloseUpdateModal,
@@ -44,7 +43,7 @@ const ListaProducto = () => {
                     placeholder="Buscar por nombre o descripción..."
                     className="p-2 border border-gray-300 rounded-l w-full focus:outline-none"
                 />
-                <button className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-r focus:outline-none">
+                <button onClick={handleSearchInputChange} className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded-r focus:outline-none">
                     Buscar
                 </button>
             </div>
@@ -94,7 +93,6 @@ const ListaProducto = () => {
                     <ModalFormularioUpdateProd
                         onClose={handleCloseUpdateModal}
                         productId={currentProductId}
-                        selectedProduct={selectedProduct}
                     />
                 </div>
             )}

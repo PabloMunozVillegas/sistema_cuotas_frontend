@@ -28,25 +28,20 @@ const ListaClientes = () => {
             const token = localStorage.getItem('token');
             const response = await APIFunctions.autenticacion.listarUrl(enlace, token);
             setClientes(response.data);
-            setTotalPages(response.totalPaginas);
+            setTotalPages(response.paginas); // Actualiza con la propiedad correcta de la API
         } catch (error) {
             console.error(error);
         }
     };
-    
-    
-    
 
     const handleOpenModalInfo = (cliente) => {
         navigate('/Inicio/VistaInfo', { state: { clienteId: cliente._id } });
     };
-    
 
     const handleOpenModalAddClient = () => {
         setShowModal(true);
         setModalType('add');
     };
-    
 
     const handleOpenModal = (clientId) => {
         setSelectedClientId(clientId);
@@ -109,7 +104,7 @@ const ListaClientes = () => {
         handleResize();
         window.addEventListener('resize', handleResize);
         return () => window.removeEventListener('resize', handleResize);
-    }, []); 
+    }, []);
 
     return (
         <div className="p-8 bg-gray-100 min-h-screen flex flex-col">
@@ -118,7 +113,6 @@ const ListaClientes = () => {
                 <button onClick={handleOpenModalAddClient} className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">
                     Agregar Cliente
                 </button>
-
             </div>
             <div className="flex mb-4">
                 <input
@@ -138,7 +132,6 @@ const ListaClientes = () => {
                         key={index}
                         title={`${cliente.nombres} ${cliente.apellidos}`}
                         carnet={cliente.cedulaIdentidad}
-                        nombre={cliente.username}
                         onMoreInfo={() => {}}
                         onAdd={() =>  handleOpenModalInfo(cliente)}
                         onEdit={() => handleOpenModal(cliente._id)}
@@ -160,7 +153,6 @@ const ListaClientes = () => {
             {showModal && modalType === 'add' && (
                 <FormuClien onClose={handleCloseModal} />
             )}
-
             
             {/* Modal para editar cliente */}
             {showModal && modalType === 'update' && (

@@ -11,7 +11,6 @@ const useListaProductoHandlers = () => {
     const [totalPages, setTotalPages] = useState(1);
     const [limit, setLimit] = useState(10);
     const [searchQuery, setSearchQuery] = useState('');
-    const [selectedProduct, setSelectedProduct] = useState(null);
 
     const fetchProductos = async () => {
         try {
@@ -19,7 +18,7 @@ const useListaProductoHandlers = () => {
             const token = localStorage.getItem('token');
             const response = await APIFunctions.producto.listarUrl(enlace, token);
             setProductos(response.productos);
-            setTotalPages(response.totalPaginas);
+            setTotalPages(response.paginas); // Cambio aquí para ajustar a la estructura correcta de tu API
         } catch (error) {
             console.error('Error al obtener la lista de productos:', error.message);
         }
@@ -27,7 +26,7 @@ const useListaProductoHandlers = () => {
 
     useEffect(() => {
         fetchProductos();
-    }, [currentPage, searchQuery, limit]); // Include dependencies here
+    }, [currentPage, searchQuery, limit]);
 
     useEffect(() => {
         const handleResize = () => {
@@ -66,18 +65,6 @@ const useListaProductoHandlers = () => {
     const handleEditModal = async (productId) => {
         setCurrentProductId(productId);
         setShowUpdateModal(true);
-        await getProduct(productId);
-    };
-
-    const getProduct = async (productId) => {
-        const token = localStorage.getItem('token');
-        try {
-            const enlace = `${productId}`;
-            const response = await APIFunctions.producto.urlIdUnico(enlace, token);
-            setSelectedProduct(response.data);
-        } catch (error) {
-            console.error('Error al obtener el producto:', error.message);
-        }
     };
 
     const handleNextPage = () => {
@@ -94,6 +81,7 @@ const useListaProductoHandlers = () => {
 
     const handleSearchInputChange = (event) => {
         setSearchQuery(event.target.value);
+        setCurrentPage(1); // Volver a la página 1 al cambiar la búsqueda
     };
 
     const handleOpenDeleteModal = (productId) => {
@@ -127,7 +115,6 @@ const useListaProductoHandlers = () => {
         totalPages,
         limit,
         searchQuery,
-        selectedProduct,
         handleOpenModal,
         handleCloseModal,
         handleCloseUpdateModal,

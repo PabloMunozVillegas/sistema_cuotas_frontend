@@ -1,7 +1,20 @@
-import React, { useState, useCallback } from 'react';
-import DateTimeDisplay from '../../../../components/FechaHora'; 
+import React, { useState } from 'react';
+import DateTimeDisplay from '../../../../components/FechaHora';
 import ToastInstance from '../../../../toastInstance';
 import { APIFunctions } from '../../../../axiosInstance';
+
+const fields = [
+    { name: 'cedulaIdentidad', label: 'Cédula de Identidad', type: 'text', pattern: '[a-zA-Z0-9\s]', required: true },
+    { name: 'nombres', label: 'Nombres', type: 'text', pattern: '[a-zA-Z\s]', required: true },
+    { name: 'apellidos', label: 'Apellidos', type: 'text', pattern: '[a-zA-Z\s]', required: true },
+    { name: 'username', label: 'Nombre de Usuario', type: 'text', pattern: null, required: true },
+    { name: 'password', label: 'Contraseña', type: 'password', pattern: null, required: true },
+    { name: 'email', label: 'Correo Electrónico', type: 'email', pattern: '^\S+@\S+\.\S+$', required: true },
+    { name: 'telefono', label: 'Teléfono', type: 'text', pattern: '[\d-]', required: true },
+    { name: 'direccion', label: 'Dirección', type: 'text', pattern: '[a-zA-Z0-9\s,.#-]', required: true },
+    { name: 'genero', label: 'Género', type: 'select', options: ['', 'Masculino', 'Femenino'], pattern: null, required: true },
+    { name: 'rol', label: 'Rol', type: 'select', options: ['', 'Cliente', 'Administrador'], pattern: null, required: true },
+];
 
 const FormuClien = ({ onClose }) => {
     const [formData, setFormData] = useState({
@@ -17,36 +30,50 @@ const FormuClien = ({ onClose }) => {
         rol: ''
     });
 
-    const handleChange = useCallback((event) => {
+    const handleChange = (event) => {
         const { name, value } = event.target;
+        let filteredValue = value;
+
+        switch (name) {
+            case 'telefono':
+                filteredValue = value.replace(/[^\d-]/g, '');
+                break;
+            case 'cedulaIdentidad':
+                filteredValue = value.replace(/[^a-zA-Z0-9\s]/g, '');
+                break;
+            case 'nombres':
+            case 'apellidos':
+                filteredValue = value.replace(/[^a-zA-Z\s]/g, '');
+                break;
+            case 'email':
+                if (new RegExp(fields.find(field => field.name === 'email').pattern).test(value)) {
+                    filteredValue = value;
+                } else {
+                    filteredValue = '';
+                }
+                break;
+            case 'direccion':
+                filteredValue = value.replace(/[^a-zA-Z0-9\s,.#-]/g, '');
+                break;
+            default:
+                filteredValue = value;
+                break;
+        }
+
         setFormData((prevData) => ({
             ...prevData,
-            [name]: value,
+            [name]: filteredValue,
         }));
-    }, []);
-    
-    const handleKeyDown = useCallback((event) => {
-        if (event.key === 'Enter') {
-            event.preventDefault();
-            handleNextField(event);
-        }
-    }, []);
-
-    const handleNextField = (event) => {
-        const form = event.target.form;
-        const index = Array.prototype.indexOf.call(form, event.target);
-        const nextElement = form.elements[index + 1];
-        if (nextElement) {
-            nextElement.focus();
-        } else {
-            handleSubmit(event);
-        }
     };
 
     const validateFormData = () => {
-        if (!formData.cedulaIdentidad || !formData.nombres || !formData.apellidos || !formData.username || !formData.password || !formData.email || !formData.telefono || !formData.direccion || !formData.genero || !formData.rol) {
-            ToastInstance({ type: 'error', message: 'Por favor, complete todos los campos obligatorios' });
-            return false;
+        const requiredFields = fields.filter(field => field.required).map(field => field.name);
+
+        for (const field of requiredFields) {
+            if (!formData[field]) {
+                ToastInstance({ type: 'error', message: 'Por favor, complete todos los campos obligatorios' });
+                return false;
+            }
         }
 
         const emailRegex = /^\S+@\S+\.\S+$/;
@@ -65,7 +92,7 @@ const FormuClien = ({ onClose }) => {
 
         try {
             const token = localStorage.getItem('token');
-            await APIFunctions.autenticacion.create(formData, null, token); 
+            await APIFunctions.autenticacion.create(formData, null, token);
             ToastInstance({ type: 'success', message: 'Usuario registrado exitosamente' });
             setTimeout(onClose, 3000);
         } catch (error) {
@@ -74,90 +101,47 @@ const FormuClien = ({ onClose }) => {
         }
     };
 
-    const handleClickOutside = (event) => {
-        if (event.target === event.currentTarget) {
-            onClose();
-        }
-    };
-
-    const InputField = ({ name, type = "text", value, onChange, onKeyDown }) => (
-        <div className="flex flex-col">
-            <label className="mb-1 capitalize">{name.replace(/([A-Z])/g, ' $1').replace(/^./, (str) => str.toUpperCase())}</label>
-            <input
-                type={type}
-                name={name}
-                value={value}
-                onChange={onChange}
-                onKeyDown={onKeyDown}
-                className="p-2 border border-gray-300 rounded w-full"
-                required
-            />
-        </div>
-    );
-
     return (
-        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-30" onClick={handleClickOutside}>
-            <div className="bg-white rounded-lg p-4 max-w-[80%] w-full md:max-w-md relative">
+        <div className="fixed top-0 left-0 w-full h-full flex justify-center items-center bg-black bg-opacity-30">
+            <div className="bg-white rounded-lg p-4 max-w-[80%] w-full md:max-w-md relative overflow-y-auto max-h-[90%]">
                 <button onClick={onClose} className="absolute top-2 right-2 text-gray-500 hover:text-gray-700">
                     <svg xmlns="http://www.w3.org/2000/svg" className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                         <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
                     </svg>
                 </button>
-                <div className="flex justify-between items-center mb-2">
-                    <h1 className="text-xl md:text-lg font-bold text-gray-700">Registro de Cliente</h1>
-                    <DateTimeDisplay className="font-bold" />
-                </div>
-                <form onSubmit={handleSubmit} className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                    {Object.keys(formData).map((key) => {
-                        if (key !== 'rol' && key !== 'genero') {
-                            return (
-                                <InputField
-                                    key={key}
-                                    name={key}
-                                    value={formData[key]}
+                <form onSubmit={handleSubmit} className="flex flex-col">
+                    {fields.map(field => (
+                        <div key={field.name} className="flex flex-col mb-4">
+                            <label className="mb-1 capitalize">{field.label}</label>
+                            {field.type === 'select' ? (
+                                <select
+                                    name={field.name}
+                                    value={formData[field.name]}
                                     onChange={handleChange}
-                                    onKeyDown={handleKeyDown}
+                                    className="p-2 border border-gray-300 rounded w-full"
+                                    required={field.required}
+                                >
+                                    {field.options.map((option, index) => (
+                                        <option key={index} value={option}>{option}</option>
+                                    ))}
+                                </select>
+                            ) : (
+                                <input
+                                    type={field.type}
+                                    name={field.name}
+                                    value={formData[field.name]}
+                                    onChange={handleChange}
+                                    className="p-2 border border-gray-300 rounded w-full"
+                                    required={field.required}
                                 />
-                            );
-                        }
-                        return null; 
-                    })}
-                    <div className="flex flex-col">
-                        <label className="mb-1 capitalize">Género</label>
-                        <select
-                            name="genero"
-                            value={formData.genero}
-                            onChange={handleChange}
-                            onKeyDown={handleKeyDown}
-                            className="p-2 border border-gray-300 rounded w-full"
-                            required
-                        >
-                            <option value="">Selecciona</option>
-                            <option value="Masculino">Masculino</option>
-                            <option value="Femenino">Femenino</option>
-                        </select>
-                    </div>
-                    <div className="flex flex-col">
-                        <label className="mb-1 capitalize">Rol</label>
-                        <select
-                            name="rol"
-                            value={formData.rol}
-                            onChange={handleChange}
-                            onKeyDown={handleKeyDown}
-                            className="p-2 border border-gray-300 rounded w-full"
-                            required
-                        >
-                            <option value="">Selecciona</option>
-                            <option value="Cliente">Cliente</option>
-                            <option value="Administrador">Administrador</option>
-                        </select>
-                    </div>
-
-                    <div className="flex justify-end col-span-2">
+                            )}
+                        </div>
+                    ))}
+                    <div className="flex justify-end">
                         <button type="submit" className="bg-lime-500 hover:bg-gray-500 text-white font-bold py-2 px-4 rounded">Confirmar Registro</button>
                     </div>
                 </form>
-                <ToastInstance/>
+                <ToastInstance />
             </div>
         </div>
     );

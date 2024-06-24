@@ -2,11 +2,11 @@ import React from 'react';
 import { FontAwesomeIcon } from '@fortawesome/react-fontawesome';
 import { faPlus, faEdit, faTrash } from '@fortawesome/free-solid-svg-icons';
 
-const CardProducto = ({ title, carnet,nombre, onAdd, onEdit, onDelete }) => (
+const CardProducto = ({ title, carnet, nombre, onAdd, onEdit, onDelete }) => (
     <div className="bg-white shadow-md rounded-lg p-6 mb-4 flex flex-col">
         <h2 className="text-xl font-bold mb-2">{title}</h2>
         <p className="mb-2"><strong>Carnet de Identidad:</strong> {carnet}</p>
-        <p><strong>Nombre:</strong> {nombre}</p>
+        
         <div className="mt-4 flex justify-between">
             <button onClick={onAdd} className="text-black px-4 py-2 rounded hover:bg-blue-400">
                 <FontAwesomeIcon icon={faPlus} />

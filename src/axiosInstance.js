@@ -156,7 +156,7 @@ const APIRoutes = {
     urlIdUnico: { method: 'GET', url: '/api/autenticacion/cliente' },
     listarAdmin: { method: 'GET', url: '/api/autenticacion/listar/administradores' },
     listarUrl: { method: 'GET', url: '/api/autenticacion/listar/clientes' },
-    actulizar: { method: 'PATCH', url: '/api/autenticacion/actualizar' },
+    actualizar: { method: 'PATCH', url: '/api/autenticacion/actualizar' },
     delete: { method: 'DELETE', url: '/api/autenticacion/eliminar' },
     deshabilitar: { method: 'DELETE', url: '/api/autenticacion/desactivar/cuenta' },
     create: { method: 'POST', url: '/api/autenticacion/create' },

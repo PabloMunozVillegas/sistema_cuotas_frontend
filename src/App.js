@@ -1,6 +1,10 @@
 import React, { useEffect, useState } from 'react';
-import './App.css';
 import { Routes, Route } from 'react-router-dom';
+import { ToastContainer } from 'react-toastify';
+import 'react-toastify/dist/ReactToastify.css';
+import './App.css'; // Asegúrate de importar tu archivo CSS aquí
+
+// Importa tus componentes
 import FormuCuotas from './InicioDeSesionParaTodos/PaginasAdministrador/VistaGralCuotas';
 import InicioSesion from './InicioDeSesionParaTodos/InicioSesion';
 import PaginaInicio from './InicioDeSesionParaTodos/PaginasAdministrador';
@@ -49,6 +53,7 @@ function App() {
           <Route path="/*" element={<EsteNoEsElUsuario />} />
         )}
       </Routes>
+      <ToastContainer />
     </div>
   );
 }
